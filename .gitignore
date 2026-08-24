@@ -1,8 +1,27 @@
+# Environnement Python
+.venv/
 __pycache__/
 *.pyc
-.venv/
-.env
+*.pyo
+.pytest_cache/
+
+# macOS
 .DS_Store
-*.db
-data/*.jsonl
-!data/.gitkeep
+.AppleDouble
+
+# Logs d'inférence (trop volumineux pour GitHub, on les garde en local)
+data/dispatcher/inference_log.jsonl
+
+# Datasets générés (on ne versionne que les sources, pas le split train/valid/test)
+data/dispatcher/dataset/
+
+# Config LoRA générée dynamiquement (regénérée par train_dispatcher.py)
+training/lora_dispatcher.yaml
+
+# Checkpoints LoRA intermédiaires (on garde seulement le final et le best)
+training/adapters/*/000*_adapters.safetensors
+
+# IDE
+.idea/
+.vscode/
+*.swp

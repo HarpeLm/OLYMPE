@@ -1,0 +1,9 @@
+# Corrections manuelles d'intents : cle = sortie modele observee dans
+# les logs/evals, valeur = intent officiel de la taxonomie.
+# Ce fichier grandit via les corrections manuelles (principe roadmap).
+intent_aliases:
+  capture: take_screenshot
+  screenshot: take_screenshot
+  get_today_events: get_events_today
+  get_now_event: get_events_date
+  get_recent_files: list_recent_files

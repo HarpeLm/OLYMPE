@@ -1,0 +1,62 @@
+{"text": "mets du rock", "intent": "play_music", "slots": {"genre": "rock"}}
+{"text": "joue de la lofi", "intent": "play_music", "slots": {"genre": "lofi"}}
+{"text": "mets du johnny hallyday", "intent": "play_music", "slots": {"artist": "johnny hallyday"}}
+{"text": "joue la playlist détente", "intent": "play_music", "slots": {"playlist": "détente"}}
+{"text": "mets l'album abbey road", "intent": "play_music", "slots": {"album": "abbey road"}}
+{"text": "je veux écouter hotel california", "intent": "play_music", "slots": {"title": "hotel california"}}
+{"text": "musique", "intent": "play_music", "slots": {}}
+{"text": "qui chante actuellement", "intent": "get_now_playing", "slots": {}}
+{"text": "c'est quel artiste qui joue", "intent": "get_now_playing", "slots": {}}
+{"text": "donne-moi le titre en cours", "intent": "get_now_playing", "slots": {}}
+{"text": "monte le volume", "intent": "set_volume", "slots": {"level": 70}}
+{"text": "volume à 40", "intent": "set_volume", "slots": {"level": 40}}
+{"text": "mets le son à fond", "intent": "set_volume", "slots": {"level": 100}}
+{"text": "baisse le son", "intent": "set_volume", "slots": {"level": 30}}
+{"text": "règle le son à 20%", "intent": "set_volume", "slots": {"level": 20}}
+{"text": "monte la luminosité", "intent": "set_brightness", "slots": {"level": 80}}
+{"text": "luminosité à 60%", "intent": "set_brightness", "slots": {"level": 60}}
+{"text": "baisse l'écran", "intent": "set_brightness", "slots": {"level": 30}}
+{"text": "lance terminal", "intent": "open_app", "slots": {"app_name": "Terminal"}}
+{"text": "ouvre l'app plans", "intent": "open_app", "slots": {"app_name": "Plans"}}
+{"text": "démarre pages", "intent": "open_app", "slots": {"app_name": "Pages"}}
+{"text": "lance musique", "intent": "open_app", "slots": {"app_name": "Musique"}}
+{"text": "ouvre visual studio code", "intent": "open_app", "slots": {"app_name": "Visual Studio Code"}}
+{"text": "ferme spotify", "intent": "close_app", "slots": {"app_name": "Spotify"}}
+{"text": "quitte safari", "intent": "close_app", "slots": {"app_name": "Safari"}}
+{"text": "ouvre le pdf facture", "intent": "open_file", "slots": {"filename": "facture.pdf"}}
+{"text": "ouvre mon cv", "intent": "open_file", "slots": {"filename": "cv"}}
+{"text": "ouvre le document rapport annuel", "intent": "open_file", "slots": {"filename": "rapport annuel"}}
+{"text": "cherche le mot facture dans mes notes", "intent": "search_content", "slots": {"query": "facture"}}
+{"text": "quels fichiers mentionnent annecy", "intent": "search_content", "slots": {"query": "annecy"}}
+{"text": "cherche contrat dans mes pdf", "intent": "search_content", "slots": {"query": "contrat", "file_type": "pdf"}}
+{"text": "trouve le fichier cv.pdf", "intent": "find_file", "slots": {"filename": "cv.pdf"}}
+{"text": "où est le fichier budget", "intent": "find_file", "slots": {"filename": "budget"}}
+{"text": "cherche mes fichiers word", "intent": "find_file", "slots": {"extension": "docx"}}
+{"text": "trouve les pdf dans le dossier factures", "intent": "find_file", "slots": {"extension": "pdf", "folder": "factures"}}
+{"text": "montre mes fichiers récents", "intent": "list_recent_files", "slots": {}}
+{"text": "les derniers fichiers modifiés", "intent": "list_recent_files", "slots": {}}
+{"text": "qu'est-ce que j'ai modifié cette semaine", "intent": "list_recent_files", "slots": {"hours": 168}}
+{"text": "j'ai quoi aujourd'hui", "intent": "get_events_today", "slots": {}}
+{"text": "mon planning du jour", "intent": "get_events_today", "slots": {}}
+{"text": "mon prochain événement", "intent": "get_next_event", "slots": {}}
+{"text": "c'est quoi la suite de ma journée", "intent": "get_next_event", "slots": {}}
+{"text": "j'ai quoi lundi", "intent": "get_events_date", "slots": {"date": "lundi"}}
+{"text": "mes événements de samedi", "intent": "get_events_date", "slots": {"date": "samedi"}}
+{"text": "note un appel avec marie demain à 9h", "intent": "create_event", "slots": {"title": "appel avec marie", "date": "demain", "time": "9:00"}}
+{"text": "ajoute une réunion d'équipe vendredi à 11h", "intent": "create_event", "slots": {"title": "réunion d'équipe", "date": "vendredi", "time": "11:00"}}
+{"text": "crée un événement anniversaire le 12 juin à 19h", "intent": "create_event", "slots": {"title": "anniversaire", "date": "2026-06-12", "time": "19:00"}}
+{"text": "fais une capture", "intent": "take_screenshot", "slots": {}}
+{"text": "capture l'écran", "intent": "take_screenshot", "slots": {"region": "full"}}
+{"text": "coupe le wifi", "intent": "toggle_wifi", "slots": {"state": "off"}}
+{"text": "wifi off", "intent": "toggle_wifi", "slots": {"state": "off"}}
+{"text": "bluetooth off", "intent": "toggle_bluetooth", "slots": {"state": "off"}}
+{"text": "active le raccourci bonne nuit", "intent": "run_shortcut", "slots": {"shortcut_name": "bonne nuit"}}
+{"text": "lance le raccourci café", "intent": "run_shortcut", "slots": {"shortcut_name": "café"}}
+{"text": "qui a gagné le match hier", "intent": "general_question", "slots": {}}
+{"text": "c'est quoi le bitcoin", "intent": "general_question", "slots": {}}
+{"text": "pourquoi le ciel est bleu", "intent": "general_question", "slots": {}}
+{"text": "donne-moi une idée de recette", "intent": "general_question", "slots": {}}
+{"text": "traduis bonjour en anglais", "intent": "general_question", "slots": {}}
+{"text": "combien de kilomètres entre paris et lyon", "intent": "general_question", "slots": {}}
+{"text": "comment ça va", "intent": "general_question", "slots": {}}
+{"text": "quelle date on est", "intent": "general_question", "slots": {}}

@@ -275,3 +275,144 @@ sa marge de raisonnement nécessaire aux Palier 6 (agentivité) et 7
 pour des besoins spécifiques (mode "réponse flash").
 
 **Critère de sortie Palier 3 : VALIDÉ ✅**
+
+## 2026-08-25 — Palier 4 : itérations dataset + dispatcheur de production
+
+**Résultats des itérations**
+
+| Métrique | v1 | v2 |
+|---|---|---|
+| Précision intent | 54% | 74% |
+| Précision intent+slots | 33% | 43% |
+| JSON malformés | 1/24 | 0/23 |
+
+Le schéma de slots exposé dans le prompt système a éliminé les JSON
+malformés et les clés de slots inventées.
+
+**Patterns d'erreur restants (v2)**
+
+- Intent valide mais faux à haute confiance (ex: bluetooth → run_shortcut)
+- Confusions calendrier (next/today/date)
+- Valeurs de slots : traduction anglaise, enum non respecté, slots fantômes
+
+**Décision : pile de garde-fous déterministes (couche [3])**
+
+- Validation de l'intent contre la taxonomie (inconnu → confiance 0 → fallback)
+- router/aliases.yaml : corrections manuelles, recalibrées dans le temps
+- Normalisation des slots : clés hors taxonomie ignorées, enums mappés
+  (active→on, coupe→off), level borné 0-100
+- Confiance heuristique : 0.0 (JSON invalide / intent inconnu), 0.55 (alias),
+  0.45 (slot requis manquant), 0.9 (OK). Seuil 0.75 dans intents.yaml
+- Calibration mesurée à refaire sur données réelles (principe roadmap)
+
+**Journalisation**
+
+Chaque requête est loguée dans data/dispatcher/inference_log.jsonl
+(texte, prédiction brute, décision, confiance). Ce log alimente les
+datasets futurs : règle des 30% de réel minimum.
+
+**État**
+
+Le dispatcheur route les requêtes simples sans réveiller le 8B quand la
+confiance est suffisante ; sinon fallback. Critère de sortie P4 à valider
+après test interactif et itération v3.
+
+## 2026-08-25 — Palier 4 : validation du dispatcheur NLU
+
+**Décision** : P4 validé. Le dispatcheur Qwen2.5-0.5B LoRA route les
+requêtes simples sans réveiller le 8B.
+
+**Itérations dataset synthétique**
+
+| Itération | Exemples | Intent strict | Intent+slots |
+|---|---|---|---|
+| v1 | 64 | 54% | 33% |
+| v2 | 125 | 74% | 43% |
+| v3 | 141 | 65% | 48% |
+
+La précision stricte sous-estime la production : plusieurs "KO" sont
+sémantiquement corrects (get_events_date + date=today ≈ get_events_today ;
+"lance musique" → play_music défendable). Plateau du synthétique atteint :
+le prochain gain viendra des vraies phrases (règle des 30% de réel).
+
+**Comportement validé en live**
+
+- "allume le bluetooth" → toggle_bluetooth, déterministe, sans 8B
+- "fais une capture" → take_screenshot (alias), déterministe
+- "j'ai quoi aujourd'hui" → calendrier, déterministe
+- "explique-moi la relativité" → confiance 0.0 → fallback 8B
+
+**Garde-fous en place (couche [3])**
+
+Validation taxonomie, router/aliases.yaml (corrections manuelles),
+normalisation des slots (enums mappés, level borné, clés hors taxonomie
+ignorées), parsing JSON tolérant, confiance heuristique
+(0.9 OK / 0.55 alias / 0.45 slot requis manquant / 0.0 invalide),
+seuil 0.75 configurable dans router/intents.yaml.
+
+**Erreurs résiduelles connues (à corriger via le log)**
+
+Confusions calendrier (next/today/date), search_content vs find_file,
+"ferme spotify" → pause_music. Le log inference_log.jsonl alimente le
+dataset v4.
+
+**Critère de sortie P4 : VALIDÉ ✅**
+
+## 2026-08-25 — Palier 4 : dispatcheur NLU léger (Qwen2.5-0.5B LoRA)
+
+**Décision** : P4 validé en principe. Le dispatcheur route les requêtes
+simples sans réveiller le 8B, conformément au critère de sortie.
+
+**Architecture mise en place**
+
+Couches [2] + [3] de la roadmap :
+- router/intents.yaml : taxonomie déclarative 24 intents (musique, calendrier,
+  fichiers locaux, macOS) + fallbacks génératifs
+- router/prompts.py : prompt système partagé entraînement/inférence,
+  avec schéma des slots (! obligatoire, ? optionnel)
+- router/aliases.yaml : corrections manuelles (recalibration dans le temps)
+- router/dispatcher.py : couche [3] avec garde-fous déterministes
+- training/ : pipeline LoRA complet (prepare / train / eval)
+
+**Garde-fous couche [3] (principe "jamais un plantage")**
+
+- Validation intent contre la taxonomie → inconnu = confiance 0 = fallback
+- Normalisation des slots : clés hors taxonomie ignorées, enums mappés
+  (active→on, coupe→off), level borné 0-100
+- Parsing JSON tolérant (accepte quotes simples, extrait premier objet valide)
+- Confiance heuristique : 0.9 OK / 0.55 alias / 0.45 slot requis manquant /
+  0.0 invalide. Seuil 0.75 configurable dans router/intents.yaml
+- Journalisation de chaque requête dans data/dispatcher/inference_log.jsonl
+
+**Itérations dataset synthétique**
+
+| Itération | Exemples | Intent strict | Intent+slots | JSON malformés |
+|---|---|---|---|---|
+| v1 | 64 | 54% | 33% | 1/24 |
+| v2 | 125 | 74% | 43% | 0/23 |
+| v3 (best ckpt) | 141 | 65% | 48% | 0/23 |
+
+**Plateau synthétique atteint**
+
+La précision strict-intent sous-estime la production : plusieurs "KO" sont
+sémantiquement défendables (get_events_date + date=today ≈ get_events_today ;
+"lance musique" → play_music acceptable). Levier 1 (changer de checkpoint)
+testé sans gain → le plafond vient de la donnée, pas du modèle.
+
+**Décision pour l'itération suivante**
+
+Prochaine itération (v4 ou v5) basée sur les VRAIES phrases de l'utilisateur
+(minimum 30% de réel dans le dataset final, exigence roadmap). Les phrases
+synthétiques reflètent le style du générateur ; les phrases réelles
+révéleront :
+- Les intents manquants dans la taxonomie (minuteur, météo, mails...)
+- Le style oral réel (phrases courtes, incomplètes, familières)
+- Les biais de traduction anglaise à corriger
+
+**Erreurs résiduelles connues (à corriger via les vraies phrases)**
+
+Confusions calendrier (next/today/date), search_content vs find_file,
+"ferme spotify" → pause_music, traduction anglaise des slots (Friday,
+Meeting, report_anual).
+
+**Critère de sortie P4 : VALIDÉ ✅** (le petit modèle route sans réveiller le 8B)

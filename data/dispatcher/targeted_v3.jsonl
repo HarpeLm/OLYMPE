@@ -1,0 +1,18 @@
+{"text": "active le bluetooth", "intent": "toggle_bluetooth", "slots": {"state": "on"}}
+{"text": "bluetooth on", "intent": "toggle_bluetooth", "slots": {"state": "on"}}
+{"text": "mets le bluetooth", "intent": "toggle_bluetooth", "slots": {"state": "on"}}
+{"text": "éteins le bluetooth", "intent": "toggle_bluetooth", "slots": {"state": "off"}}
+{"text": "désactive le bluetooth", "intent": "toggle_bluetooth", "slots": {"state": "off"}}
+{"text": "allume le wifi", "intent": "toggle_wifi", "slots": {"state": "on"}}
+{"text": "remets le wifi", "intent": "toggle_wifi", "slots": {"state": "on"}}
+{"text": "quelle chanson est en cours", "intent": "get_now_playing", "slots": {}}
+{"text": "quel titre est en train de jouer", "intent": "get_now_playing", "slots": {}}
+{"text": "qu'est-ce qui suit dans mon planning", "intent": "get_next_event", "slots": {}}
+{"text": "c'est quoi ensuite dans mon calendrier", "intent": "get_next_event", "slots": {}}
+{"text": "dis-moi mon programme aujourd'hui", "intent": "get_events_today", "slots": {}}
+{"text": "j'ai des rendez-vous aujourd'hui", "intent": "get_events_today", "slots": {}}
+{"text": "chanson suivante", "intent": "next_track", "slots": {}}
+{"text": "suivante", "intent": "next_track", "slots": {}}
+{"text": "mets la piste d'après", "intent": "next_track", "slots": {}}
+{"text": "prends une capture d'écran", "intent": "take_screenshot", "slots": {}}
+{"text": "fais une capture d'écran", "intent": "take_screenshot", "slots": {}}

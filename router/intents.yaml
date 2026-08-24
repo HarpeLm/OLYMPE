@@ -1,0 +1,230 @@
+# Taxonomie des intents pour le dispatcheur NLU léger
+# Source de vérité pour le dataset d'entraînement et le routing
+
+version: "1.0"
+
+# Intent déterministes : traités directement par l'orchestrateur Python
+# sans réveiller le LLM principal
+deterministic_intents:
+  
+  # === MUSIQUE ===
+  - name: play_music
+    description: "Jouer de la musique"
+    slots:
+      - name: artist
+        type: string
+        required: false
+      - name: title
+        type: string
+        required: false
+      - name: album
+        type: string
+        required: false
+      - name: playlist
+        type: string
+        required: false
+      - name: genre
+        type: string
+        required: false
+    handler: "integrations/music.py::play"
+    
+  - name: pause_music
+    description: "Mettre en pause la musique"
+    slots: []
+    handler: "integrations/music.py::pause"
+    
+  - name: resume_music
+    description: "Reprendre la musique"
+    slots: []
+    handler: "integrations/music.py::resume"
+    
+  - name: next_track
+    description: "Passer à la piste suivante"
+    slots: []
+    handler: "integrations/music.py::next"
+    
+  - name: previous_track
+    description: "Revenir à la piste précédente"
+    slots: []
+    handler: "integrations/music.py::previous"
+    
+  - name: get_now_playing
+    description: "Demander ce qui joue actuellement"
+    slots: []
+    handler: "integrations/music.py::now_playing"
+
+  # === CALENDRIER ===
+  - name: create_event
+    description: "Créer un événement dans le calendrier"
+    slots:
+      - name: title
+        type: string
+        required: true
+      - name: date
+        type: date
+        required: true
+      - name: time
+        type: time
+        required: false
+      - name: duration_minutes
+        type: integer
+        required: false
+      - name: location
+        type: string
+        required: false
+    handler: "integrations/calendar.py::create_event"
+    
+  - name: get_next_event
+    description: "Demander le prochain événement"
+    slots: []
+    handler: "integrations/calendar.py::next_event"
+    
+  - name: get_events_today
+    description: "Lister les événements du jour"
+    slots: []
+    handler: "integrations/calendar.py::events_today"
+    
+  - name: get_events_date
+    description: "Lister les événements d'une date donnée"
+    slots:
+      - name: date
+        type: date
+        required: true
+    handler: "integrations/calendar.py::events_date"
+
+  # === RECHERCHE FICHIERS LOCAUX ===
+  - name: find_file
+    description: "Trouver un fichier par nom ou métadonnée"
+    slots:
+      - name: filename
+        type: string
+        required: false
+      - name: extension
+        type: string
+        required: false
+      - name: modified_recently
+        type: boolean
+        required: false
+      - name: folder
+        type: string
+        required: false
+    handler: "integrations/filesystem.py::find"
+    
+  - name: search_content
+    description: "Chercher dans le contenu des fichiers"
+    slots:
+      - name: query
+        type: string
+        required: true
+      - name: file_type
+        type: string
+        required: false
+      - name: folder
+        type: string
+        required: false
+    handler: "integrations/filesystem.py::search_content"
+    
+  - name: open_file
+    description: "Ouvrir un fichier avec l'application par défaut"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/filesystem.py::open"
+    
+  - name: list_recent_files
+    description: "Lister les fichiers récents"
+    slots:
+      - name: hours
+        type: integer
+        required: false
+    handler: "integrations/filesystem.py::recent"
+
+  # === COMMANDES SYSTÈME MACOS ===
+  - name: open_app
+    description: "Ouvrir une application"
+    slots:
+      - name: app_name
+        type: string
+        required: true
+    handler: "integrations/macos.py::open_app"
+    
+  - name: close_app
+    description: "Fermer une application"
+    slots:
+      - name: app_name
+        type: string
+        required: true
+    handler: "integrations/macos.py::close_app"
+    
+  - name: set_volume
+    description: "Régler le volume système"
+    slots:
+      - name: level
+        type: integer
+        required: true
+    handler: "integrations/macos.py::set_volume"
+    
+  - name: set_brightness
+    description: "Régler la luminosité de l'écran"
+    slots:
+      - name: level
+        type: integer
+        required: true
+    handler: "integrations/macos.py::set_brightness"
+    
+  - name: take_screenshot
+    description: "Faire une capture d'écran"
+    slots:
+      - name: region
+        type: string
+        required: false
+    handler: "integrations/macos.py::screenshot"
+    
+  - name: sleep_mac
+    description: "Mettre le Mac en veille"
+    slots: []
+    handler: "integrations/macos.py::sleep"
+    
+  - name: toggle_wifi
+    description: "Activer ou désactiver le WiFi"
+    slots:
+      - name: state
+        type: enum
+        values: [on, off]
+        required: true
+    handler: "integrations/macos.py::wifi"
+    
+  - name: toggle_bluetooth
+    description: "Activer ou désactiver le Bluetooth"
+    slots:
+      - name: state
+        type: enum
+        values: [on, off]
+        required: true
+    handler: "integrations/macos.py::bluetooth"
+    
+  - name: run_shortcut
+    description: "Exécuter un raccourci macOS"
+    slots:
+      - name: shortcut_name
+        type: string
+        required: true
+    handler: "integrations/macos.py::shortcut"
+
+# Intent génératifs : déclenchent un fallback vers le LLM principal
+generative_fallbacks:
+  - name: general_question
+    description: "Question générale nécessitant du raisonnement"
+    trigger: "confidence < 0.7 ou intent non reconnu"
+    action: "fallback to chat model"
+    
+  - name: out_of_scope
+    description: "Hors périmètre ou ambigu"
+    trigger: "aucun intent déterministe ne correspond"
+    action: "fallback to chat model"
+
+# Configuration du seuil de confiance
+confidence:
+  threshold: 0.75
+  below_threshold_action: "fallback_to_generative"

@@ -1,0 +1,64 @@
+{"text": "mets de la musique", "intent": "play_music", "slots": {}}
+{"text": "joue du jazz", "intent": "play_music", "slots": {"genre": "jazz"}}
+{"text": "mets du Miles Davis", "intent": "play_music", "slots": {"artist": "Miles Davis"}}
+{"text": "joue bohemian rhapsody", "intent": "play_music", "slots": {"title": "bohemian rhapsody"}}
+{"text": "mets ma playlist workout", "intent": "play_music", "slots": {"playlist": "workout"}}
+{"text": "joue l'album dark side of the moon", "intent": "play_music", "slots": {"album": "dark side of the moon"}}
+{"text": "pause", "intent": "pause_music", "slots": {}}
+{"text": "mets sur pause", "intent": "pause_music", "slots": {}}
+{"text": "arrête la musique", "intent": "pause_music", "slots": {}}
+{"text": "reprends", "intent": "resume_music", "slots": {}}
+{"text": "remets la musique", "intent": "resume_music", "slots": {}}
+{"text": "piste suivante", "intent": "next_track", "slots": {}}
+{"text": "suivant", "intent": "next_track", "slots": {}}
+{"text": "passe à la chanson suivante", "intent": "next_track", "slots": {}}
+{"text": "piste précédente", "intent": "previous_track", "slots": {}}
+{"text": "reviens en arrière", "intent": "previous_track", "slots": {}}
+{"text": "qu'est-ce qui joue", "intent": "get_now_playing", "slots": {}}
+{"text": "c'est quoi cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "qui chante", "intent": "get_now_playing", "slots": {}}
+{"text": "ajoute un rendez-vous demain à 14h", "intent": "create_event", "slots": {"title": "rendez-vous", "date": "tomorrow", "time": "14:00"}}
+{"text": "crée un événement réunion d'équipe lundi à 10h", "intent": "create_event", "slots": {"title": "réunion d'équipe", "date": "monday", "time": "10:00"}}
+{"text": "ajoute dentiste le 15 mars à 16h30", "intent": "create_event", "slots": {"title": "dentiste", "date": "2026-03-15", "time": "16:30"}}
+{"text": "c'est quoi mon prochain rendez-vous", "intent": "get_next_event", "slots": {}}
+{"text": "j'ai quoi de prévu après", "intent": "get_next_event", "slots": {}}
+{"text": "qu'est-ce que j'ai aujourd'hui", "intent": "get_events_today", "slots": {}}
+{"text": "mon programme du jour", "intent": "get_events_today", "slots": {}}
+{"text": "qu'est-ce que j'ai demain", "intent": "get_events_date", "slots": {"date": "tomorrow"}}
+{"text": "mes rendez-vous de vendredi", "intent": "get_events_date", "slots": {"date": "friday"}}
+{"text": "trouve le fichier rapport.pdf", "intent": "find_file", "slots": {"filename": "rapport.pdf"}}
+{"text": "où est mon cv", "intent": "find_file", "slots": {"filename": "cv"}}
+{"text": "cherche les fichiers markdown", "intent": "find_file", "slots": {"extension": "md"}}
+{"text": "montre-moi les fichiers modifiés récemment", "intent": "find_file", "slots": {"modified_recently": true}}
+{"text": "trouve les photos dans le dossier vacances", "intent": "find_file", "slots": {"extension": "jpg", "folder": "vacances"}}
+{"text": "cherche budget dans mes fichiers excel", "intent": "search_content", "slots": {"query": "budget", "file_type": "xlsx"}}
+{"text": "trouve tous les documents qui parlent de contrat", "intent": "search_content", "slots": {"query": "contrat"}}
+{"text": "ouvre le fichier notes.txt", "intent": "open_file", "slots": {"filename": "notes.txt"}}
+{"text": "ouvre rapport annuel", "intent": "open_file", "slots": {"filename": "rapport annuel"}}
+{"text": "quels fichiers j'ai modifiés aujourd'hui", "intent": "list_recent_files", "slots": {"hours": 24}}
+{"text": "mes documents récents", "intent": "list_recent_files", "slots": {}}
+{"text": "ouvre safari", "intent": "open_app", "slots": {"app_name": "Safari"}}
+{"text": "lance vscode", "intent": "open_app", "slots": {"app_name": "Visual Studio Code"}}
+{"text": "démarre spotify", "intent": "open_app", "slots": {"app_name": "Spotify"}}
+{"text": "ouvre l'application mail", "intent": "open_app", "slots": {"app_name": "Mail"}}
+{"text": "ferme chrome", "intent": "close_app", "slots": {"app_name": "Google Chrome"}}
+{"text": "quitte preview", "intent": "close_app", "slots": {"app_name": "Preview"}}
+{"text": "baisse le volume", "intent": "set_volume", "slots": {"level": 30}}
+{"text": "mets le son à 50%", "intent": "set_volume", "slots": {"level": 50}}
+{"text": "augmente le volume à fond", "intent": "set_volume", "slots": {"level": 100}}
+{"text": "baisse la luminosité", "intent": "set_brightness", "slots": {"level": 30}}
+{"text": "mets l'écran à 70%", "intent": "set_brightness", "slots": {"level": 70}}
+{"text": "fais une capture d'écran", "intent": "take_screenshot", "slots": {}}
+{"text": "screenshot de tout l'écran", "intent": "take_screenshot", "slots": {"region": "full"}}
+{"text": "mets le mac en veille", "intent": "sleep_mac", "slots": {}}
+{"text": "éteins l'écran", "intent": "sleep_mac", "slots": {}}
+{"text": "active le wifi", "intent": "toggle_wifi", "slots": {"state": "on"}}
+{"text": "coupe le wifi", "intent": "toggle_wifi", "slots": {"state": "off"}}
+{"text": "allume le bluetooth", "intent": "toggle_bluetooth", "slots": {"state": "on"}}
+{"text": "désactive le bluetooth", "intent": "toggle_bluetooth", "slots": {"state": "off"}}
+{"text": "lance le raccourci morning routine", "intent": "run_shortcut", "slots": {"shortcut_name": "morning routine"}}
+{"text": "exécute le shortcut focus mode", "intent": "run_shortcut", "slots": {"shortcut_name": "focus mode"}}
+{"text": "quelle est la capitale de la France", "intent": "general_question", "slots": {}}
+{"text": "explique-moi la relativité", "intent": "general_question", "slots": {}}
+{"text": "raconte-moi une blague", "intent": "general_question", "slots": {}}
+{"text": "comment on fait une omelette", "intent": "general_question", "slots": {}}

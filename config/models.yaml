@@ -4,7 +4,12 @@ roles:
     quantization: 4-bit
     notes: "Choix Palier 1 - voir DECISIONS.md"
 
-  dispatcher: null
+  dispatcher:
+    repo: mlx-community/Qwen2.5-0.5B-Instruct-4bit
+    quantization: 4-bit
+    adapter: training/adapters/dispatcher-best
+    notes: "Base LoRA Palier 4 - resident en permanence"
+
   stt: null
   tts: null
   wake_word: null
@@ -14,9 +19,19 @@ server:
   command: ["python", "-m", "vllm_mlx.server"]
   host: "127.0.0.1"
   port: 8000
-  # vllm-mlx 0.4.1 ne supporte pas max_model_len, enable_prefix_caching, kv_cache_dtype
-  # Le prefix caching est probablement activé par défaut
-  reasoning_parser: "qwen3"  # Pour extraire le reasoning de Qwen3
-  max_tokens: 512  # Limite par défaut pour les réponses
+  reasoning_parser: "qwen3"
+  max_tokens: 512
   trust_remote_code: false
   extra_args: []
+
+# Parametres d'entrainement LoRA du dispatcheur (Palier 4)
+dispatcher_training:
+  seed_dir: data/dispatcher
+  output_dir: data/dispatcher/dataset
+  adapter_path: training/adapters/dispatcher-v2
+  iters: 300
+  batch_size: 2
+  learning_rate: 2.0e-5
+  lora_layers: 16
+  lora_rank: 8
+  seed: 42
