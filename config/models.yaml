@@ -1,0 +1,22 @@
+roles:
+  chat:
+    repo: mlx-community/Qwen3-8B-4bit
+    quantization: 4-bit
+    notes: "Choix Palier 1 - voir DECISIONS.md"
+
+  dispatcher: null
+  stt: null
+  tts: null
+  wake_word: null
+
+server:
+  engine: vllm-mlx
+  command: ["python", "-m", "vllm_mlx.server"]
+  host: "127.0.0.1"
+  port: 8000
+  # vllm-mlx 0.4.1 ne supporte pas max_model_len, enable_prefix_caching, kv_cache_dtype
+  # Le prefix caching est probablement activé par défaut
+  reasoning_parser: "qwen3"  # Pour extraire le reasoning de Qwen3
+  max_tokens: 512  # Limite par défaut pour les réponses
+  trust_remote_code: false
+  extra_args: []
