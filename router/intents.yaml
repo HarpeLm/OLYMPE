@@ -1,12 +1,16 @@
 # Taxonomie des intents pour le dispatcheur NLU léger
 # Source de vérité pour le dataset d'entraînement et le routing
+#
+# v1.3 — intègre les phrases réelles musique + calendrier + diverses
+# Règle de normalisation : date absente = aujourd'hui (appliquée par
+# l'orchestrateur et apprise par le modèle via l'étiquetage)
 
-version: "1.0"
+version: "1.4"
 
 # Intent déterministes : traités directement par l'orchestrateur Python
 # sans réveiller le LLM principal
 deterministic_intents:
-  
+
   # === MUSIQUE ===
   - name: play_music
     description: "Jouer de la musique"
@@ -27,31 +31,49 @@ deterministic_intents:
         type: string
         required: false
     handler: "integrations/music.py::play"
-    
+
   - name: pause_music
     description: "Mettre en pause la musique"
     slots: []
     handler: "integrations/music.py::pause"
-    
+
   - name: resume_music
     description: "Reprendre la musique"
     slots: []
     handler: "integrations/music.py::resume"
-    
+
   - name: next_track
     description: "Passer à la piste suivante"
     slots: []
     handler: "integrations/music.py::next"
-    
+
   - name: previous_track
     description: "Revenir à la piste précédente"
     slots: []
     handler: "integrations/music.py::previous"
-    
+
   - name: get_now_playing
     description: "Demander ce qui joue actuellement"
     slots: []
     handler: "integrations/music.py::now_playing"
+
+  # Ajouté depuis les vraies phrases (v1.1)
+  - name: sleep_timer
+    description: "Arrêter la musique après X minutes"
+    slots:
+      - name: duration_minutes
+        type: integer
+        required: true
+    handler: "integrations/music.py::sleep_timer"
+
+  # Ajouté depuis les vraies phrases (v1.1)
+  - name: repeat_track
+    description: "Répéter la piste actuelle N fois"
+    slots:
+      - name: count
+        type: integer
+        required: false
+    handler: "integrations/music.py::repeat"
 
   # === CALENDRIER ===
   - name: create_event
@@ -66,6 +88,9 @@ deterministic_intents:
       - name: time
         type: time
         required: false
+      - name: end_time
+        type: time
+        required: false        # ajouté v1.2 ("bloquer 15h30-18h")
       - name: duration_minutes
         type: integer
         required: false
@@ -73,17 +98,33 @@ deterministic_intents:
         type: string
         required: false
     handler: "integrations/calendar.py::create_event"
-    
+
+  # Ajouté depuis les vraies phrases (v1.2)
+  - name: create_recurring_event
+    description: "Créer un événement récurrent (anniversaire, hebdo, mensuel)"
+    slots:
+      - name: title
+        type: string
+        required: true
+      - name: date
+        type: date
+        required: true
+      - name: recurrence
+        type: enum
+        values: [yearly, weekly, monthly]
+        required: true
+    handler: "integrations/calendar.py::create_recurring"
+
   - name: get_next_event
     description: "Demander le prochain événement"
     slots: []
     handler: "integrations/calendar.py::next_event"
-    
+
   - name: get_events_today
     description: "Lister les événements du jour"
     slots: []
     handler: "integrations/calendar.py::events_today"
-    
+
   - name: get_events_date
     description: "Lister les événements d'une date donnée"
     slots:
@@ -91,6 +132,30 @@ deterministic_intents:
         type: date
         required: true
     handler: "integrations/calendar.py::events_date"
+
+  # Ajouté depuis les vraies phrases (v1.2)
+  - name: check_availability
+    description: "Vérifier si libre à une date/heure donnée"
+    slots:
+      - name: date
+        type: date
+        required: true
+      - name: time
+        type: time
+        required: false
+      - name: duration_minutes
+        type: integer
+        required: false
+    handler: "integrations/calendar.py::check_availability"
+
+  # Ajouté depuis les vraies phrases (v1.2)
+  - name: search_events
+    description: "Chercher un événement par mots-clés dans le titre"
+    slots:
+      - name: query
+        type: string
+        required: true
+    handler: "integrations/calendar.py::search"
 
   # === RECHERCHE FICHIERS LOCAUX ===
   - name: find_file
@@ -109,7 +174,7 @@ deterministic_intents:
         type: string
         required: false
     handler: "integrations/filesystem.py::find"
-    
+
   - name: search_content
     description: "Chercher dans le contenu des fichiers"
     slots:
@@ -123,7 +188,7 @@ deterministic_intents:
         type: string
         required: false
     handler: "integrations/filesystem.py::search_content"
-    
+
   - name: open_file
     description: "Ouvrir un fichier avec l'application par défaut"
     slots:
@@ -131,7 +196,16 @@ deterministic_intents:
         type: string
         required: true
     handler: "integrations/filesystem.py::open"
-    
+
+  # Ajouté depuis les vraies phrases (v1.3) : dossier, pas fichier
+  - name: open_folder
+    description: "Ouvrir un dossier dans le Finder"
+    slots:
+      - name: folder_name
+        type: string
+        required: true
+    handler: "integrations/macos.py::open_folder"
+
   - name: list_recent_files
     description: "Lister les fichiers récents"
     slots:
@@ -148,7 +222,7 @@ deterministic_intents:
         type: string
         required: true
     handler: "integrations/macos.py::open_app"
-    
+
   - name: close_app
     description: "Fermer une application"
     slots:
@@ -156,23 +230,33 @@ deterministic_intents:
         type: string
         required: true
     handler: "integrations/macos.py::close_app"
-    
+
+  # Modifié depuis les vraies phrases (v1.1) : level OU direction
   - name: set_volume
-    description: "Régler le volume système"
+    description: "Régler le volume (absolu ou relatif d'un cran)"
     slots:
       - name: level
         type: integer
-        required: true
+        required: false
+      - name: direction
+        type: enum
+        values: [up, down]
+        required: false
     handler: "integrations/macos.py::set_volume"
-    
+
+  # Modifié depuis les vraies phrases (v1.3) : level OU direction
   - name: set_brightness
-    description: "Régler la luminosité de l'écran"
+    description: "Régler la luminosité (absolu ou relatif d'un cran)"
     slots:
       - name: level
         type: integer
-        required: true
+        required: false
+      - name: direction
+        type: enum
+        values: [up, down]
+        required: false
     handler: "integrations/macos.py::set_brightness"
-    
+
   - name: take_screenshot
     description: "Faire une capture d'écran"
     slots:
@@ -180,12 +264,12 @@ deterministic_intents:
         type: string
         required: false
     handler: "integrations/macos.py::screenshot"
-    
+
   - name: sleep_mac
     description: "Mettre le Mac en veille"
     slots: []
     handler: "integrations/macos.py::sleep"
-    
+
   - name: toggle_wifi
     description: "Activer ou désactiver le WiFi"
     slots:
@@ -194,7 +278,7 @@ deterministic_intents:
         values: [on, off]
         required: true
     handler: "integrations/macos.py::wifi"
-    
+
   - name: toggle_bluetooth
     description: "Activer ou désactiver le Bluetooth"
     slots:
@@ -203,7 +287,7 @@ deterministic_intents:
         values: [on, off]
         required: true
     handler: "integrations/macos.py::bluetooth"
-    
+
   - name: run_shortcut
     description: "Exécuter un raccourci macOS"
     slots:
@@ -212,13 +296,53 @@ deterministic_intents:
         required: true
     handler: "integrations/macos.py::shortcut"
 
+  # === INFO EXTERNE ===
+  # Ajouté depuis les vraies phrases (v1.3)
+  - name: get_weather
+    description: "Demander la météo pour un lieu"
+    slots:
+      - name: location
+        type: string
+        required: true
+      - name: date
+        type: date
+        required: false
+    handler: "integrations/weather.py::get"
+
+  # Ajouté depuis les vraies phrases (v1.3)
+  # EXCEPTION CONSCIENTE (roadmap §9) : réintroduit une dépendance externe.
+  # À tracer dans DECISIONS.md comme exception acceptée, pas par défaut.
+  - name: web_search
+    description: "Chercher sur internet"
+    slots:
+      - name: query
+        type: string
+        required: true
+    handler: "integrations/web.py::search"
+
+  # Ajouté depuis les vraies phrases (v1.4)
+  - name: get_wifi_status
+    description: "Demander si le Mac est connecté au WiFi"
+    slots: []
+    handler: "integrations/macos.py::wifi_status"
+
+  # Ajouté depuis les vraies phrases (v1.4)
+  - name: toggle_airdrop
+    description: "Activer ou désactiver AirDrop"
+    slots:
+      - name: state
+        type: enum
+        values: [on, off]
+        required: true
+    handler: "integrations/macos.py::airdrop"
+
 # Intent génératifs : déclenchent un fallback vers le LLM principal
 generative_fallbacks:
   - name: general_question
     description: "Question générale nécessitant du raisonnement"
-    trigger: "confidence < 0.7 ou intent non reconnu"
+    trigger: "confidence < 0.75 ou intent non reconnu"
     action: "fallback to chat model"
-    
+
   - name: out_of_scope
     description: "Hors périmètre ou ambigu"
     trigger: "aucun intent déterministe ne correspond"

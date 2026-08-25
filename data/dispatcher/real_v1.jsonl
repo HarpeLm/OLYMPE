@@ -1,0 +1,38 @@
+{"text": "tu peux me mettre i got a woman de ray charles", "intent": "play_music", "slots": {"title": "i got a woman", "artist": "Ray Charles"}}
+{"text": "mets moi ma playlist pour ken", "intent": "play_music", "slots": {"playlist": "pour ken"}}
+{"text": "joue ma playlist pour travailler", "intent": "play_music", "slots": {"playlist": "pour travailler"}}
+{"text": "mets moi la musique que tu veux aujourd'hui", "intent": "play_music", "slots": {}}
+{"text": "mets moi du maitre gims", "intent": "play_music", "slots": {"artist": "maître gims"}}
+{"text": "tu peux baisser le son s'il te plaît", "intent": "set_volume", "slots": {"direction": "down"}}
+{"text": "pourrais tu augmenter le son s'il te plaît", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "mets moi la musique d'après s'il te plait", "intent": "next_track", "slots": {}}
+{"text": "remets moi la musique d'avant s'il te plaît", "intent": "previous_track", "slots": {}}
+{"text": "tu peux arrêter ma musique", "intent": "pause_music", "slots": {}}
+{"text": "tu peux faire en sorte que la musique se coupe dans 10 minutes s'il te plaît", "intent": "sleep_timer", "slots": {"duration_minutes": 10}}
+{"text": "tu peux répéter cette musique deux ou trois fois s'il te plaît", "intent": "repeat_track", "slots": {"count": 3}}
+{"text": "j'ai un rendez vous avec madame lodden à midi 30 le 25 aout", "intent": "create_event", "slots": {"title": "rendez-vous avec madame lodden", "date": "25 août", "time": "12:30"}}
+{"text": "note que tous les 13 février c'est mon anniversaire", "intent": "create_recurring_event", "slots": {"title": "mon anniversaire", "date": "13 février", "recurrence": "yearly"}}
+{"text": "note que tous les 9 mai c'est l'anniversaire de ma copine", "intent": "create_recurring_event", "slots": {"title": "anniversaire de ma copine", "date": "9 mai", "recurrence": "yearly"}}
+{"text": "pense à bloquer le créneau de 15h30 à 18h pour ma mère", "intent": "create_event", "slots": {"title": "pour ma mère", "date": "aujourd'hui", "time": "15:30", "end_time": "18:00"}}
+{"text": "je suis libre le samedi à 15h", "intent": "check_availability", "slots": {"date": "samedi", "time": "15:00"}}
+{"text": "est ce qu'on a de la place le samedi pour mon rendez vous chez le dentiste", "intent": "check_availability", "slots": {"date": "samedi"}}
+{"text": "on a quoi aujourd'hui", "intent": "get_events_today", "slots": {}}
+{"text": "quel est le programme aujourd'hui", "intent": "get_events_today", "slots": {}}
+{"text": "pour quand est prévu mon date avec ma copine", "intent": "search_events", "slots": {"query": "date avec ma copine"}}
+{"text": "quel temps fait il aujourd'hui à Annecy", "intent": "get_weather", "slots": {"location": "Annecy", "date": "aujourd'hui"}}
+{"text": "tu peux augmenter la luminosité de mon écran", "intent": "set_brightness", "slots": {"direction": "up"}}
+{"text": "tu peux diminuer la luminosité de mon écran", "intent": "set_brightness", "slots": {"direction": "down"}}
+{"text": "est ce que tu peux m'ouvrir mon dossier Projet", "intent": "open_folder", "slots": {"folder_name": "Projet"}}
+{"text": "est ce que tu peux chercher ce que veut dire mélanome", "intent": "web_search", "slots": {"query": "mélanome"}}
+{"text": "que veut dire vélo", "intent": "general_question", "slots": {}}
+{"text": "comment on dit chien en russe", "intent": "general_question", "slots": {}}
+{"text": "tu peux me dire où est le pdf du contrat pour aquapp", "intent": "find_file", "slots": {"filename": "contrat pour AQUAPP", "extension": "pdf"}}
+{"text": "tu peux me dresser un endroit possible où j'ai mis mes captures d'écrans", "intent": "find_file", "slots": {"filename": "captures d'écran"}}
+{"text": "cherches moi des documents qui parle de mes études de médecine", "intent": "search_content", "slots": {"query": "études de médecine"}}
+{"text": "tu peux m'ouvrir le fichier readme.md dans le dossier olympe", "intent": "open_file", "slots": {"filename": "README.md", "folder": "OLYMPE"}}
+{"text": "tu peux me dire quels sont les fichiers qu'il faut que je revoie en priorité pour ma comptabilité", "intent": "search_content", "slots": {"query": "comptabilité"}}
+{"text": "tu peux m'ouvrir apple music s'il te plaît", "intent": "open_app", "slots": {"app_name": "Apple Music"}}
+{"text": "tu peux le lancer safari s'il te plaît", "intent": "open_app", "slots": {"app_name": "Safari"}}
+{"text": "lances moi le raccourci focus s'il te plait", "intent": "run_shortcut", "slots": {"shortcut_name": "Focus"}}
+{"text": "est ce que je suis en wifi", "intent": "get_wifi_status", "slots": {}}
+{"text": "tu peux m'activer mon air drop", "intent": "toggle_airdrop", "slots": {"state": "on"}}

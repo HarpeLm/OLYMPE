@@ -8,14 +8,14 @@
 {"text": "qui chante actuellement", "intent": "get_now_playing", "slots": {}}
 {"text": "c'est quel artiste qui joue", "intent": "get_now_playing", "slots": {}}
 {"text": "donne-moi le titre en cours", "intent": "get_now_playing", "slots": {}}
-{"text": "monte le volume", "intent": "set_volume", "slots": {"level": 70}}
+{"text": "monte le volume", "intent": "set_volume", "slots": {"direction": "up"}}
 {"text": "volume à 40", "intent": "set_volume", "slots": {"level": 40}}
 {"text": "mets le son à fond", "intent": "set_volume", "slots": {"level": 100}}
-{"text": "baisse le son", "intent": "set_volume", "slots": {"level": 30}}
+{"text": "baisse le son", "intent": "set_volume", "slots": {"direction": "down"}}
 {"text": "règle le son à 20%", "intent": "set_volume", "slots": {"level": 20}}
-{"text": "monte la luminosité", "intent": "set_brightness", "slots": {"level": 80}}
+{"text": "monte la luminosité", "intent": "set_brightness", "slots": {"direction": "up"}}
 {"text": "luminosité à 60%", "intent": "set_brightness", "slots": {"level": 60}}
-{"text": "baisse l'écran", "intent": "set_brightness", "slots": {"level": 30}}
+{"text": "baisse l'écran", "intent": "set_brightness", "slots": {"direction": "down"}}
 {"text": "lance terminal", "intent": "open_app", "slots": {"app_name": "Terminal"}}
 {"text": "ouvre l'app plans", "intent": "open_app", "slots": {"app_name": "Plans"}}
 {"text": "démarre pages", "intent": "open_app", "slots": {"app_name": "Pages"}}

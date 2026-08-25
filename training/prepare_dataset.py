@@ -25,6 +25,8 @@ def load_config():
 def load_all_seeds(seed_dir):
     examples, seen = [], set()
     for path in sorted(seed_dir.glob("*.jsonl")):
+        if path.name == "inference_log.jsonl":
+            continue
         with open(path, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()

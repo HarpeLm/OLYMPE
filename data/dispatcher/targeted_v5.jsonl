@@ -1,0 +1,16 @@
+{"text": "mets moi du maitre gims", "intent": "play_music", "slots": {"artist": "maître gims"}}
+{"text": "mets moi du johnny", "intent": "play_music", "slots": {"artist": "johnny"}}
+{"text": "mets moi du daft punk", "intent": "play_music", "slots": {"artist": "daft punk"}}
+{"text": "mets moi du booba", "intent": "play_music", "slots": {"artist": "booba"}}
+{"text": "qu'est-ce qui suit dans mon planning", "intent": "get_next_event", "slots": {}}
+{"text": "qu'est-ce qui arrive après", "intent": "get_next_event", "slots": {}}
+{"text": "c'est quoi la suite de ma journée", "intent": "get_next_event", "slots": {}}
+{"text": "qu'est-ce que j'ai après", "intent": "get_next_event", "slots": {}}
+{"text": "mes documents récents", "intent": "list_recent_files", "slots": {}}
+{"text": "mes fichiers récents", "intent": "list_recent_files", "slots": {}}
+{"text": "les derniers documents", "intent": "list_recent_files", "slots": {}}
+{"text": "quels sont mes fichiers récents", "intent": "list_recent_files", "slots": {}}
+{"text": "lances moi le raccourci focus", "intent": "run_shortcut", "slots": {"shortcut_name": "Focus"}}
+{"text": "lances moi le raccourci café", "intent": "run_shortcut", "slots": {"shortcut_name": "café"}}
+{"text": "exécutes moi le raccourci bonne nuit", "intent": "run_shortcut", "slots": {"shortcut_name": "bonne nuit"}}
+{"text": "lances le raccourci workout", "intent": "run_shortcut", "slots": {"shortcut_name": "workout"}}

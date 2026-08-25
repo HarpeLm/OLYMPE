@@ -43,10 +43,10 @@
 {"text": "ouvre l'application mail", "intent": "open_app", "slots": {"app_name": "Mail"}}
 {"text": "ferme chrome", "intent": "close_app", "slots": {"app_name": "Google Chrome"}}
 {"text": "quitte preview", "intent": "close_app", "slots": {"app_name": "Preview"}}
-{"text": "baisse le volume", "intent": "set_volume", "slots": {"level": 30}}
+{"text": "baisse le volume", "intent": "set_volume", "slots": {"direction": "down"}}
 {"text": "mets le son à 50%", "intent": "set_volume", "slots": {"level": 50}}
 {"text": "augmente le volume à fond", "intent": "set_volume", "slots": {"level": 100}}
-{"text": "baisse la luminosité", "intent": "set_brightness", "slots": {"level": 30}}
+{"text": "baisse la luminosité", "intent": "set_brightness", "slots": {"direction": "down"}}
 {"text": "mets l'écran à 70%", "intent": "set_brightness", "slots": {"level": 70}}
 {"text": "fais une capture d'écran", "intent": "take_screenshot", "slots": {}}
 {"text": "screenshot de tout l'écran", "intent": "take_screenshot", "slots": {"region": "full"}}

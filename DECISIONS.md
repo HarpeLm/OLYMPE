@@ -167,7 +167,7 @@ Ce gain de 76% compense le débit de génération de 14.2 tokens/s (sous la
 cible basse de 15-30 tokens/s). Le choix du Qwen3-8B-4bit du Palier 1 est 
 maintenu.
 
-**Critère de sortie Palier 2 : VALIDÉ ✅**
+**Critère de sortie Palier 2 : VALIDÉ **
 
 - Service tourne en continu sans être relancé
 - Accessible via API locale (http://127.0.0.1:8000)
@@ -203,7 +203,7 @@ principal (pris au Palier 1) est maintenu pour sa marge de raisonnement (P6/P7),
 malgré la latence plus élevée. Le 4B reste disponible en une ligne de config
 si un besoin de rapidité extrême se présente (ex: mode "réponse flash").
 
-**Critère de sortie Palier 3 : VALIDÉ ✅**
+**Critère de sortie Palier 3 : VALIDÉ **
 
 ## 2026-08-25 — Palier 3 : registre dynamique validé
 
@@ -239,7 +239,7 @@ sa marge de raisonnement nécessaire aux Palier 6 (agentivité) et 7
 (intégrations système). Le 4B reste disponible en une ligne de config
 pour des besoins spécifiques (mode "réponse flash").
 
-**Critère de sortie Palier 3 : VALIDÉ ✅**
+**Critère de sortie Palier 3 : VALIDÉ **
 
 ## 2026-08-25 — Palier 3 : registre dynamique validé
 
@@ -274,7 +274,7 @@ sa marge de raisonnement nécessaire aux Palier 6 (agentivité) et 7
 (intégrations système). Le 4B reste disponible en une ligne de config
 pour des besoins spécifiques (mode "réponse flash").
 
-**Critère de sortie Palier 3 : VALIDÉ ✅**
+**Critère de sortie Palier 3 : VALIDÉ **
 
 ## 2026-08-25 — Palier 4 : itérations dataset + dispatcheur de production
 
@@ -356,7 +356,7 @@ Confusions calendrier (next/today/date), search_content vs find_file,
 "ferme spotify" → pause_music. Le log inference_log.jsonl alimente le
 dataset v4.
 
-**Critère de sortie P4 : VALIDÉ ✅**
+**Critère de sortie P4 : VALIDÉ **
 
 ## 2026-08-25 — Palier 4 : dispatcheur NLU léger (Qwen2.5-0.5B LoRA)
 
@@ -415,4 +415,244 @@ Confusions calendrier (next/today/date), search_content vs find_file,
 "ferme spotify" → pause_music, traduction anglaise des slots (Friday,
 Meeting, report_anual).
 
-**Critère de sortie P4 : VALIDÉ ✅** (le petit modèle route sans réveiller le 8B)
+**Critère de sortie P4 : VALIDÉ ** (le petit modèle route sans réveiller le 8B)
+
+---
+
+## 2026-08-25 — Palier 2 : serveur persistant vllm-mlx
+
+**Décision : vllm-mlx 0.4.1 retenu comme serveur d'inférence**
+
+### Contexte
+
+Après validation de mlx-lm en ligne de commande (Palier 1), besoin d'un
+serveur persistant pour servir le modèle via API OpenAI-compatible, avec
+gestion du prefix caching (réutilisation du KV cache entre requêtes
+partageant le même prompt système).
+
+### Résultats mesurés
+
+| Modèle | Requête à froid | Requêtes suivantes (moy.) | Gain cache |
+|---|---|---|---|
+| Qwen3-8B-4bit | 11.84s | 7.81s | **34%** |
+| Qwen3-4B-4bit | 5.06s | 4.85s | **4%** |
+
+Le gain de cache faible sur le 4B (4%) s'explique par un prefill déjà
+très rapide. Les ~5s mesurés correspondent essentiellement à la génération
+des tokens (incluant le bloc de raisonnement interne, nettoyé côté client).
+Sur le 8B, le prefill plus lourd rend le cache proportionnellement plus
+visible (34% de gain).
+
+### Artefacts produits
+
+- `server/start.py` : lanceur de serveur persistant
+- `server/test_latency.py` : benchmark avec nettoyage des blocs de raisonnement
+- Configuration : reasoning-parser qwen3, max-tokens 512
+
+**Critère de sortie P2 : VALIDÉ** ✅ (API locale, modèle chargé en continu, prefix caching actif)
+
+---
+
+## 2026-08-25 — Palier 3 : registre dynamique de modèles
+
+**Critère de sortie** : "Changer de modèle = éditer une ligne de config, jamais le code"
+
+**Test effectué**
+
+Basculement du rôle `chat` entre `Qwen3-8B-4bit` et `Qwen3-4B-4bit` :
+1. Édition d'UNE seule ligne dans `config/models.yaml` (commande `sed`)
+2. Zéro modification du code Python (`server/start.py` ou `test_latency.py`)
+3. Redémarrage du serveur et test de latence effectué pour chaque modèle
+
+Le principe "zéro modèle codé en dur" est validé concrètement.
+
+**Critère de sortie P3 : VALIDÉ** ✅
+
+---
+
+## 2026-08-25 — Palier 4 : dispatcheur NLU léger (v5 finale)
+
+**Décision : Qwen2.5-0.5B-Instruct fine-tuné en LoRA comme dispatcheur**
+
+### Architecture mise en place
+
+Couches [2] + [3] de la roadmap :
+- `router/intents.yaml` : taxonomie déclarative 31 intents déterministes
+  (musique, calendrier, fichiers locaux, macOS, météo, web search) + 2 fallbacks
+- `router/prompts.py` : prompt système partagé entraînement/inférence,
+  schéma des slots (! obligatoire, ? optionnel)
+- `router/aliases.yaml` : corrections manuelles (recalibration dans le temps)
+- `router/dispatcher.py` : couche [3] avec garde-fous déterministes
+  (validation taxonomie, normalisation slots, confiance heuristique, fallback)
+- `training/` : pipeline LoRA complet (prepare / train / eval)
+
+### Itérations dataset
+
+| Version | Exemples | Intent | Intent+slots | Type |
+|---|---|---|---|---|
+| v1 | 64 | 54% | 33% | Synthétique pur |
+| v2 | 125 | 74% | 43% | + corrections confusions |
+| v3 | 141 | 65% | 48% | + paraphrases ciblées |
+| v4 | 179 | 82% | 57% | + phrases réelles (38) |
+| **v5** | **191** | **86%** | **61%** | **+ 16 exemples ciblés** |
+
+### Phrases réelles intégrées
+
+38 phrases réelles (~20% du dataset) couvrant :
+- Musique (12) : contrôle lecture, playlists, sleep_timer, repeat_track
+- Calendrier (9) : événements uniques/récurrents, disponibilité, recherche
+- Fichiers + macOS (10) : find, search_content, open_folder, apps, shortcuts
+- Divers (7) : météo, web_search, questions générales
+
+### Garde-fous couche [3]
+
+- Validation intent contre la taxonomie → inconnu = confiance 0 = fallback
+- Normalisation des slots : clés hors taxonomie ignorées, enums mappés
+  (active→on, coupe→off), level borné 0-100
+- Parsing JSON tolérant (accepte quotes simples, extrait premier objet valide)
+- Confiance heuristique : 0.9 OK / 0.55 alias / 0.45 slot requis manquant /
+  0.0 invalide. Seuil 0.75 configurable dans router/intents.yaml
+- Journalisation dans data/dispatcher/inference_log.jsonl (exclu du repo)
+
+### Résultats finaux v5
+
+- Précision intent : **86%** (24/28 sur test set)
+- Précision intent+slots : **61%** (17/28 sur test set)
+- JSON malformés : **0/28**
+- Meilleur checkpoint : iter 300 (val loss 0.078)
+
+### Test interactif validé
+
+Les 4 phrases qui posaient problème en v4 sont maintenant correctes :
+- "mets moi du maitre gims" → play_music ✅
+- "qu'est-ce qui suit dans mon planning" → get_next_event ✅
+- "mes documents récents" → list_recent_files ✅
+- "lances moi le raccourci focus" → run_shortcut ✅
+
+**Critère de sortie P4 : VALIDÉ** ✅
+(Le petit modèle route les requêtes simples sans réveiller le 8B ;
+les cas hors scope partent en fallback vers le LLM principal)
+
+---
+
+<!-- Prochaine entrée : Palier 5 — Couche vocale (wake word + STT + TTS) -->
+
+---
+
+## 2026-08-25 — Palier 2 : serveur persistant vllm-mlx
+
+**Décision : vllm-mlx 0.4.1 retenu comme serveur d'inférence**
+
+### Contexte
+
+Après validation de mlx-lm en ligne de commande (Palier 1), besoin d'un
+serveur persistant pour servir le modèle via API OpenAI-compatible, avec
+gestion du prefix caching (réutilisation du KV cache entre requêtes
+partageant le même prompt système).
+
+### Résultats mesurés
+
+| Modèle | Requête à froid | Requêtes suivantes (moy.) | Gain cache |
+|---|---|---|---|
+| Qwen3-8B-4bit | 11.84s | 7.81s | 34% |
+| Qwen3-4B-4bit | 5.06s | 4.85s | 4% |
+
+Le gain de cache faible sur le 4B (4%) s'explique par un prefill déjà
+très rapide. Les ~5s mesurés correspondent essentiellement à la génération
+des tokens (incluant le bloc de raisonnement interne, nettoyé côté client).
+Sur le 8B, le prefill plus lourd rend le cache proportionnellement plus
+visible (34% de gain).
+
+### Artefacts produits
+
+- `server/start.py` : lanceur de serveur persistant
+- `server/test_latency.py` : benchmark avec nettoyage des blocs de raisonnement
+- Configuration : reasoning-parser qwen3, max-tokens 512
+
+**Critère de sortie P2 : VALIDÉ** (API locale, modèle chargé en continu, prefix caching actif)
+
+---
+
+## 2026-08-25 — Palier 3 : registre dynamique de modèles
+
+**Critère de sortie** : "Changer de modèle = éditer une ligne de config, jamais le code"
+
+**Test effectué**
+
+Basculement du rôle `chat` entre `Qwen3-8B-4bit` et `Qwen3-4B-4bit` :
+1. Édition d'UNE seule ligne dans `config/models.yaml` (commande `sed`)
+2. Zéro modification du code Python (`server/start.py` ou `test_latency.py`)
+3. Redémarrage du serveur et test de latence effectué pour chaque modèle
+
+Le principe "zéro modèle codé en dur" est validé concrètement.
+
+**Critère de sortie P3 : VALIDÉ**
+
+---
+
+## 2026-08-25 — Palier 4 : dispatcheur NLU léger (v5 finale)
+
+**Décision : Qwen2.5-0.5B-Instruct fine-tuné en LoRA comme dispatcheur**
+
+### Architecture mise en place
+
+Couches [2] + [3] de la roadmap :
+- `router/intents.yaml` : taxonomie déclarative 31 intents déterministes
+  (musique, calendrier, fichiers locaux, macOS, météo, web search) + 2 fallbacks
+- `router/prompts.py` : prompt système partagé entraînement/inférence,
+  schéma des slots (! obligatoire, ? optionnel)
+- `router/aliases.yaml` : corrections manuelles (recalibration dans le temps)
+- `router/dispatcher.py` : couche [3] avec garde-fous déterministes
+  (validation taxonomie, normalisation slots, confiance heuristique, fallback)
+- `training/` : pipeline LoRA complet (prepare / train / eval)
+
+### Itérations dataset
+
+| Version | Exemples | Intent | Intent+slots | Type |
+|---|---|---|---|---|
+| v1 | 64 | 54% | 33% | Synthétique pur |
+| v2 | 125 | 74% | 43% | + corrections confusions |
+| v3 | 141 | 65% | 48% | + paraphrases ciblées |
+| v4 | 179 | 82% | 57% | + phrases réelles (38) |
+| v5 | 191 | 86% | 61% | + 16 exemples ciblés |
+
+### Phrases réelles intégrées
+
+38 phrases réelles (~20% du dataset) couvrant :
+- Musique (12) : contrôle lecture, playlists, sleep_timer, repeat_track
+- Calendrier (9) : événements uniques/récurrents, disponibilité, recherche
+- Fichiers + macOS (10) : find, search_content, open_folder, apps, shortcuts
+- Divers (7) : météo, web_search, questions générales
+
+### Garde-fous couche [3]
+
+- Validation intent contre la taxonomie → inconnu = confiance 0 = fallback
+- Normalisation des slots : clés hors taxonomie ignorées, enums mappés
+  (active→on, coupe→off), level borné 0-100
+- Parsing JSON tolérant (accepte quotes simples, extrait premier objet valide)
+- Confiance heuristique : 0.9 OK / 0.55 alias / 0.45 slot requis manquant /
+  0.0 invalide. Seuil 0.75 configurable dans router/intents.yaml
+- Journalisation dans data/dispatcher/inference_log.jsonl (exclu du repo)
+
+### Résultats finaux v5
+
+- Précision intent : 86% (24/28 sur test set)
+- Précision intent+slots : 61% (17/28 sur test set)
+- JSON malformés : 0/28
+- Meilleur checkpoint : iter 300 (val loss 0.078)
+
+### Test interactif validé
+
+Les 4 phrases qui posaient problème en v4 sont maintenant correctes :
+- "mets moi du maitre gims" → play_music
+- "qu'est-ce qui suit dans mon planning" → get_next_event
+- "mes documents récents" → list_recent_files
+- "lances moi le raccourci focus" → run_shortcut
+
+**Critère de sortie P4 : VALIDÉ**
+(Le petit modèle route les requêtes simples sans réveiller le 8B ;
+les cas hors scope partent en fallback vers le LLM principal)
+
+---
+
+<!-- Prochaine entrée : Palier 5 — Couche vocale (wake word + STT + TTS) -->
