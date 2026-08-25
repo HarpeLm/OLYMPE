@@ -1,0 +1,27 @@
+{"text": "les derniers documents", "intent": "list_recent_files", "slots": {}}
+{"text": "les derniers fichiers", "intent": "list_recent_files", "slots": {}}
+{"text": "les documents récents", "intent": "list_recent_files", "slots": {}}
+{"text": "les fichiers récents", "intent": "list_recent_files", "slots": {}}
+{"text": "quels sont les derniers documents", "intent": "list_recent_files", "slots": {}}
+{"text": "quels sont les derniers fichiers", "intent": "list_recent_files", "slots": {}}
+{"text": "montre-moi les documents récents", "intent": "list_recent_files", "slots": {}}
+{"text": "c'est quel artiste qui joue", "intent": "get_now_playing", "slots": {}}
+{"text": "c'est qui qui chante", "intent": "get_now_playing", "slots": {}}
+{"text": "c'est quoi comme artiste", "intent": "get_now_playing", "slots": {}}
+{"text": "qui joue en ce moment", "intent": "get_now_playing", "slots": {}}
+{"text": "quel artiste passe", "intent": "get_now_playing", "slots": {}}
+{"text": "c'est quoi cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "comment ça va", "intent": "general_question", "slots": {}}
+{"text": "ça va", "intent": "general_question", "slots": {}}
+{"text": "comment tu vas", "intent": "general_question", "slots": {}}
+{"text": "tu vas bien", "intent": "general_question", "slots": {}}
+{"text": "comment vas-tu", "intent": "general_question", "slots": {}}
+{"text": "salut ça va", "intent": "general_question", "slots": {}}
+{"text": "qu'est-ce que j'ai demain", "intent": "get_events_date", "slots": {"date": "demain"}}
+{"text": "j'ai quoi demain", "intent": "get_events_date", "slots": {"date": "demain"}}
+{"text": "c'est quoi mon planning demain", "intent": "get_events_date", "slots": {"date": "demain"}}
+{"text": "qu'est-ce qui est prévu demain", "intent": "get_events_date", "slots": {"date": "demain"}}
+{"text": "je fais quoi demain", "intent": "get_events_date", "slots": {"date": "demain"}}
+{"text": "mon programme demain", "intent": "get_events_date", "slots": {"date": "demain"}}
+{"text": "qu'est-ce que j'ai après-demain", "intent": "get_events_date", "slots": {"date": "après-demain"}}
+{"text": "j'ai quoi lundi", "intent": "get_events_date", "slots": {"date": "lundi"}}

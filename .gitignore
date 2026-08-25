@@ -25,3 +25,11 @@ training/adapters/*/000*_adapters.safetensors
 .idea/
 .vscode/
 *.swp
+
+# Dataset MASSIVE brut (téléchargé, non versionné)
+data/dispatcher/1.0/
+data/dispatcher/amazon-massive-dataset-*.tar.gz
+data/dispatcher/massive/
+
+# Logs d'inférence
+data/dispatcher/inference_log.jsonl

@@ -1,0 +1,233 @@
+{"text": "silence", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "olly silence", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "stop", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "olly mets en pause pour dix secondes", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "pause pendant dix secondes", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "vérifier quand le spectacle commence", "intent": "get_events_date", "slots": {}}
+{"text": "je veux écouter la chanson de jacques brel encore une fois", "intent": "play_music", "slots": {"artist_name": "jacques brel"}}
+{"text": "je veux rejouer cette musique", "intent": "play_music", "slots": {"media_type": "musique"}}
+{"text": "quelle heure est-il en australie", "intent": "general_question", "slots": {"place_name": "australie"}}
+{"text": "dis-moi l'heure à bordeaux", "intent": "general_question", "slots": {"place_name": "bordeaux"}}
+{"text": "dis-moi l'heure en t.m.g. plus cinq", "intent": "general_question", "slots": {"time_zone": "t.m.g. plus cinq"}}
+{"text": "olly donne-moi l'heure en g. m. t. plus cinq", "intent": "general_question", "slots": {"time_zone": "g. m. t. plus cinq"}}
+{"text": "ce qui se passe dans le football aujourd'hui", "intent": "web_search", "slots": {"news_topic": "football", "date": "aujourd'hui"}}
+{"text": "s'il te plais joue j' ai demandé à la lune d' indochine", "intent": "play_music", "slots": {"artist_name": "indochine"}}
+{"text": "j'aimerais écouter ne me quitte pas de jacques brel", "intent": "play_music", "slots": {"song_name": "ne me quitte pas", "artist_name": "jacques brel"}}
+{"text": "jouer moi jacques brel ne me quitte pas", "intent": "play_music", "slots": {}}
+{"text": "j'aime la musique rock", "intent": "play_music", "slots": {"music_genre": "rock"}}
+{"text": "ma musique favori de mon groupe phoenix", "intent": "play_music", "slots": {"artist_name": "phoenix"}}
+{"text": "j' aime les chansons de jacques brel", "intent": "play_music", "slots": {"artist_name": "jacques brel"}}
+{"text": "commence à jouer musique de préfèré", "intent": "play_music", "slots": {}}
+{"text": "s'il te plaît joue ma meilleure musique", "intent": "play_music", "slots": {}}
+{"text": "quel est le groupe qui chante maintenant", "intent": "get_now_playing", "slots": {}}
+{"text": "qui est l'auteur de la musique actuelle", "intent": "get_now_playing", "slots": {}}
+{"text": "de quel album est cette musique actuelle", "intent": "get_now_playing", "slots": {}}
+{"text": "olly j'apprécie vraiment cette chanson", "intent": "play_music", "slots": {}}
+{"text": "la chanson que tu es en train de jouer est incroyable", "intent": "play_music", "slots": {}}
+{"text": "ceci est une des meilleures chansons pour moi", "intent": "play_music", "slots": {}}
+{"text": "dis-moi la date d'aujourd'hui", "intent": "general_question", "slots": {"date": "d'aujourd'hui"}}
+{"text": "quelle date est-il aujourd'hui", "intent": "general_question", "slots": {"date": "aujourd'hui"}}
+{"text": "il pleut", "intent": "get_weather", "slots": {}}
+{"text": "va t'il pleuvoir", "intent": "get_weather", "slots": {}}
+{"text": "est-ce qu'il neige actuellement", "intent": "get_weather", "slots": {}}
+{"text": "quelles sont les prévisions de cette semaine", "intent": "get_weather", "slots": {}}
+{"text": "quelles sont les prévisions de la semaine", "intent": "get_weather", "slots": {}}
+{"text": "quel est le temps cette semaine", "intent": "get_weather", "slots": {"date": "cette semaine"}}
+{"text": "quel temps fait-il cette semaine", "intent": "get_weather", "slots": {"date": "cette semaine"}}
+{"text": "dis-moi quel temps il fera cette semaine", "intent": "get_weather", "slots": {"date": "cette semaine"}}
+{"text": "dis moi b. b. c. nouvelles", "intent": "web_search", "slots": {"media_type": "b. b. c."}}
+{"text": "quelles sont les nouvelles sur b. b. c. nouvelles", "intent": "web_search", "slots": {"media_type": "b. b. c."}}
+{"text": "quel est les dernières nouvelles de b. b. c.", "intent": "web_search", "slots": {"media_type": "de b. b. c."}}
+{"text": "joue ne me quitte pas", "intent": "play_music", "slots": {"song_name": "ne me quitte pas"}}
+{"text": "joue un chant que j' aime", "intent": "play_music", "slots": {}}
+{"text": "jouer la chanson ne me quitte pas", "intent": "play_music", "slots": {}}
+{"text": "joue daft punk", "intent": "play_music", "slots": {"artist_name": "daft punk"}}
+{"text": "joue un peu de coldplay", "intent": "play_music", "slots": {"artist_name": "coldplay"}}
+{"text": "joue un peu de jaques brel", "intent": "play_music", "slots": {"artist_name": "jaques brel"}}
+{"text": "boucle cette piste", "intent": "play_music", "slots": {"player_setting": "boucle"}}
+{"text": "mélange cette liste de lecture", "intent": "play_music", "slots": {"player_setting": "mélange"}}
+{"text": "règle le volume sur le niveau bas", "intent": "set_volume", "slots": {"direction": "down"}}
+{"text": "qu'est-ce qui est joué", "intent": "get_now_playing", "slots": {}}
+{"text": "cest musique est la quelle", "intent": "get_now_playing", "slots": {}}
+{"text": "dis-moi l'artiste de cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "quel jour sommes-nous aujourd'hui", "intent": "general_question", "slots": {"date": "aujourd'hui"}}
+{"text": "quelle est la date", "intent": "general_question", "slots": {}}
+{"text": "qu'est-ce qui joue", "intent": "get_now_playing", "slots": {}}
+{"text": "dis moi le nom de la chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "qu'elle est cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "joue ma playlist jazz", "intent": "play_music", "slots": {"music_genre": "jazz"}}
+{"text": "commence ma playlist de jazz", "intent": "play_music", "slots": {"music_genre": "jazz"}}
+{"text": "jouer ma liste de lecture préférée", "intent": "play_music", "slots": {}}
+{"text": "c'est une bonne chanson", "intent": "play_music", "slots": {}}
+{"text": "je l' aime", "intent": "play_music", "slots": {}}
+{"text": "j'aime le jazz", "intent": "play_music", "slots": {"music_genre": "jazz"}}
+{"text": "peux-tu jouer du jazz", "intent": "play_music", "slots": {"music_genre": "jazz"}}
+{"text": "j'aime écouter le jazz", "intent": "play_music", "slots": {"music_genre": "jazz"}}
+{"text": "olly j'aime écouter le jazz", "intent": "play_music", "slots": {"music_genre": "jazz"}}
+{"text": "change le volume", "intent": "set_volume", "slots": {}}
+{"text": "dites-moi les dernières nouvelles de la technologie", "intent": "web_search", "slots": {"news_topic": "technologie"}}
+{"text": "dites-moi des nouvelles de l'entreprise", "intent": "web_search", "slots": {"news_topic": "l'entreprise"}}
+{"text": "dites-moi des nouvellesdites-moi des nouvelles internationale", "intent": "web_search", "slots": {"place_name": "internationale"}}
+{"text": "dis-moi la météo", "intent": "get_weather", "slots": {}}
+{"text": "quel est le temps maintenant", "intent": "get_weather", "slots": {}}
+{"text": "est-ce qu'il pleut maintenant", "intent": "get_weather", "slots": {}}
+{"text": "augmente le volume", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "monter le volume", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "coupe le volume", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "quelle heure est il", "intent": "general_question", "slots": {}}
+{"text": "dit moi l'heure", "intent": "general_question", "slots": {}}
+{"text": "quel temps fait-il à paris", "intent": "get_weather", "slots": {"location": "paris"}}
+{"text": "dis-moi la météo en monaco", "intent": "get_weather", "slots": {"location": "monaco"}}
+{"text": "quelle est la date aujourd'hui", "intent": "general_question", "slots": {"date": "aujourd'hui"}}
+{"text": "dit moi la date", "intent": "general_question", "slots": {}}
+{"text": "quel temps fait-il aujourd'hui", "intent": "get_weather", "slots": {"date": "aujourd'hui"}}
+{"text": "est-ce qu'il pleut dehors", "intent": "get_weather", "slots": {}}
+{"text": "est-ce qu'il pleut dehors olly", "intent": "get_weather", "slots": {}}
+{"text": "dois je apporter un parapluie demain", "intent": "get_weather", "slots": {"date": "demain"}}
+{"text": "quelle est cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "quelle heure est-il à marseille", "intent": "general_question", "slots": {"place_name": "marseille"}}
+{"text": "quelle heure est-il à ottawa", "intent": "general_question", "slots": {"place_name": "ottawa"}}
+{"text": "il est en train de pleuvoir à québec", "intent": "get_weather", "slots": {"location": "québec"}}
+{"text": "va-t-il pleuvoir aujourd'hui", "intent": "get_weather", "slots": {"date": "aujourd'hui"}}
+{"text": "que se passe-t-il dehors", "intent": "get_weather", "slots": {}}
+{"text": "ce qui se passe en amérique", "intent": "web_search", "slots": {"place_name": "amérique"}}
+{"text": "ce qui se passe dans le monde", "intent": "web_search", "slots": {"place_name": "monde"}}
+{"text": "que se passe-t-il à cambridge", "intent": "web_search", "slots": {"place_name": "cambridge"}}
+{"text": "montre moi des nouvelles de b. b. c.", "intent": "web_search", "slots": {"media_type": "b. b. c."}}
+{"text": "olly montre moi des nouvelles b. b. c.", "intent": "web_search", "slots": {"media_type": "b. b. c."}}
+{"text": "jouer c. n. n. nouvelles", "intent": "web_search", "slots": {"media_type": "c. n. n."}}
+{"text": "olly hackernews", "intent": "web_search", "slots": {"media_type": "hackernews"}}
+{"text": "olly quelle musique j'aime habituellement après le travail", "intent": "get_now_playing", "slots": {}}
+{"text": "je ne peux pas t'entendre", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "tu es trop bruyant", "intent": "set_volume", "slots": {"direction": "down"}}
+{"text": "je peux à peine t'entendre olly", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "je peux à peine t'entendre", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "quelle est l'heure", "intent": "general_question", "slots": {}}
+{"text": "quelle heure est-il à bruxelles maintenant", "intent": "general_question", "slots": {"place_name": "bruxelles"}}
+{"text": "quelle est la chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "olly quelle est la chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "que veut dire le chanteur dans le titre de la chanson je suis malade", "intent": "get_now_playing", "slots": {"song_name": "je suis malade"}}
+{"text": "qui a repris la chanson ma philosophie", "intent": "get_now_playing", "slots": {"song_name": "ma philosophie"}}
+{"text": "quelle est la météo à paris", "intent": "get_weather", "slots": {"location": "paris"}}
+{"text": "comment est le temps à lyon", "intent": "get_weather", "slots": {"location": "lyon"}}
+{"text": "quelles sont les prévisions d'aujourd'hui pour angers", "intent": "get_weather", "slots": {"location": "angers", "date": "d'aujourd'hui"}}
+{"text": "quel est l'état actuel des négociations sur le brexit", "intent": "web_search", "slots": {"news_topic": "négociations sur le brexit"}}
+{"text": "quel est le taux de change du dollar américain en livre sterling", "intent": "web_search", "slots": {"news_topic": "taux de change du dollar américain en livre sterling"}}
+{"text": "qui va gagner les prochaines élections en france", "intent": "web_search", "slots": {"news_topic": "élections"}}
+{"text": "attends-tu du soleil le dimanche", "intent": "get_weather", "slots": {"date": "dimanche"}}
+{"text": "va-t-il pleuvoir le soir", "intent": "get_weather", "slots": {}}
+{"text": "va-t-il y avoir du vent demain", "intent": "get_weather", "slots": {"date": "demain"}}
+{"text": "dis moi la nouvelle", "intent": "web_search", "slots": {}}
+{"text": "dis-moi les gros titres de journal aujourd'hui", "intent": "web_search", "slots": {"media_type": "journal", "date": "aujourd'hui"}}
+{"text": "quelle est la météo", "intent": "get_weather", "slots": {}}
+{"text": "quelles sont les prévisions pour aujourd'hui", "intent": "get_weather", "slots": {"date": "aujourd'hui"}}
+{"text": "quel temps fait il", "intent": "get_weather", "slots": {}}
+{"text": "combien de jours il reste dans cette année", "intent": "general_question", "slots": {"date": "cette année"}}
+{"text": "quel jour est le réveillon du nouvel an cette année", "intent": "general_question", "slots": {"date": "cette année"}}
+{"text": "quel jour est le jour du souvenir cette année", "intent": "general_question", "slots": {"date": "cette année"}}
+{"text": "reste calme pendant encore une heure s'il vous plaît", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "sourdine", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "ne parle pas aujourd'hui", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "va-t-il pleuvoir demain", "intent": "get_weather", "slots": {"date": "demain"}}
+{"text": "dis-moi les nouvelles de la technologie de engadget", "intent": "web_search", "slots": {"news_topic": "technologie", "media_type": "engadget"}}
+{"text": "plus silencieux", "intent": "set_volume", "slots": {"direction": "down"}}
+{"text": "plus doux", "intent": "set_volume", "slots": {"direction": "down"}}
+{"text": "quel jour de la semaine tombe le vingt deux mars", "intent": "general_question", "slots": {"date": "vingt deux mars"}}
+{"text": "quel jour arrive t-il le vingt-neuf mars", "intent": "general_question", "slots": {"date": "vingt-neuf mars"}}
+{"text": "quel jour de la semaine est le premier avril", "intent": "general_question", "slots": {"date": "le premier avril"}}
+{"text": "peux tu me dire l'heure", "intent": "general_question", "slots": {}}
+{"text": "quelle est l'heure actuelle", "intent": "general_question", "slots": {}}
+{"text": "quelle est la date actuelle", "intent": "general_question", "slots": {}}
+{"text": "est-ce lundi aujourd'hui", "intent": "general_question", "slots": {"date": "lundi aujourd'hui"}}
+{"text": "s'il vous plaît dites-moi les dernières nouvelles", "intent": "web_search", "slots": {}}
+{"text": "ce qui se passe dans les nouvelles", "intent": "web_search", "slots": {}}
+{"text": "vérifier les nouvelles populaire à times of india", "intent": "web_search", "slots": {"media_type": "times of india"}}
+{"text": "ce qui est sensationnel au temps de l'inde", "intent": "web_search", "slots": {"media_type": "temps de l'inde"}}
+{"text": "toute nouvelle de mort au rtl", "intent": "web_search", "slots": {"news_topic": "mort", "media_type": "rtl"}}
+{"text": "faites-moi savoir dès qu'il y a plus de nouvelles sur le brexit", "intent": "web_search", "slots": {"news_topic": "brexit"}}
+{"text": "s'il est midi en virginie quelle sera le temps en californie", "intent": "general_question", "slots": {"timeofday": "midi", "place_name": "californie"}}
+{"text": "quelles sont les dernières nouvelles", "intent": "web_search", "slots": {}}
+{"text": "quelles sont les actualite", "intent": "web_search", "slots": {}}
+{"text": "peux-tu parler un peu plus fort", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "je ne peux pas vous entendre pouvez-vous parler un peu plus fort", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "parle fort s'il vous plaît", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "c'est quoi le nom de la chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "qui est le chanteur de la chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "quelle est la durée de la chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "silence s'il vous plaît", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "hauts-parleurs éteints", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "calme-toi s'il vous plaît", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "peux-tu couper le son quand je ne suis pas à la maison", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "coupe le son pour la prochaine heure s'il vous plaît", "intent": "set_volume", "slots": {"level": 0}}
+{"text": "recherche le nom de l'album avec katy perry", "intent": "get_now_playing", "slots": {"artist_name": "katy perry"}}
+{"text": "augmente le volume de la musique à nos actes maqués s'il te plaît", "intent": "set_volume", "slots": {"direction": "up"}}
+{"text": "quelle est la chanson en cours", "intent": "get_now_playing", "slots": {}}
+{"text": "qui chante cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "envoie-moi les paroles de cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "quel est le nom de cette chanson qui vient de sonner", "intent": "get_now_playing", "slots": {}}
+{"text": "trouve-moi la chanson en cours de lecture", "intent": "get_now_playing", "slots": {}}
+{"text": "je veux connaître cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "qui a chanté cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "quel est le nom de cette chanson", "intent": "get_now_playing", "slots": {}}
+{"text": "comment s'appelle le chanteur", "intent": "get_now_playing", "slots": {}}
+{"text": "y a-t-il du rap sans sexe argent et drogue", "intent": "get_now_playing", "slots": {"music_genre": "rap"}}
+{"text": "dans la musique classique y a t il jamais des chanteurs", "intent": "get_now_playing", "slots": {"music_genre": "classique"}}
+{"text": "s'il vous plaît dites-moi les événements actuels de la journée", "intent": "get_events_date", "slots": {"time": "journée"}}
+{"text": "pouvez-vous me confirmer que mon réunion de demain a été annulé", "intent": "get_events_date", "slots": {"event_name": "réunion", "date": "demain"}}
+{"text": "est la réunion prévue pour demain", "intent": "get_events_date", "slots": {"event_name": "réunion", "date": "demain"}}
+{"text": "rappelle moi s'il se passe n'importe quoi", "intent": "create_event", "slots": {}}
+{"text": "rappelle moi de faire quelque chose là", "intent": "create_event", "slots": {}}
+{"text": "quelle est l'heure pour la fête de jimmy", "intent": "get_events_date", "slots": {"event_name": "la fête de jimmy"}}
+{"text": "rappelle-moi après dix minutes", "intent": "create_event", "slots": {"time": "après dix minutes"}}
+{"text": "rappel -moi à une heure après midi", "intent": "create_event", "slots": {"time": "une heure après midi"}}
+{"text": "quels sont les prochains rappels", "intent": "get_events_date", "slots": {}}
+{"text": "définir une notification pour un jeu de sport", "intent": "create_event", "slots": {"event_name": "jeu de sport"}}
+{"text": "définir des notifications sur les catastrophes météorologiques actuelles en amérique", "intent": "create_event", "slots": {"event_name": "catastrophes météorologiques", "place_name": "amérique"}}
+{"text": "rappelle à mon ami pour obtenir la mission demain", "intent": "create_event", "slots": {}}
+{"text": "appeler bill pour reporter notre réunion", "intent": "get_events_date", "slots": {"person": "bill", "event_name": "réunion"}}
+{"text": "comment sera aujourd'hui pour moi", "intent": "get_events_date", "slots": {"date": "aujourd'hui"}}
+{"text": "pouvez-vous me parler d'aujourd'hui", "intent": "get_events_date", "slots": {"date": "d'aujourd'hui"}}
+{"text": "à quoi ressemble ma semaine à venir", "intent": "get_events_date", "slots": {"date": "semaine à venir"}}
+{"text": "mon programme hebdomadaire", "intent": "get_events_date", "slots": {}}
+{"text": "mes prochains événements", "intent": "get_events_date", "slots": {}}
+{"text": "ouvrir un mémo ajouter une note sur ma réunion", "intent": "create_event", "slots": {"event_name": "réunion"}}
+{"text": "quel est mon emploi du temps pour la journée", "intent": "get_events_date", "slots": {}}
+{"text": "rappels", "intent": "create_event", "slots": {}}
+{"text": "agenda", "intent": "get_events_date", "slots": {}}
+{"text": "marquer aujourd'hui comme le début de mon régime", "intent": "create_event", "slots": {"date": "aujourd'hui", "event_name": "début de mon régime"}}
+{"text": "aujourd'hui doit être marqué comme mon jour de triche", "intent": "create_event", "slots": {"date": "aujourd'hui", "event_name": "mon jour de triche"}}
+{"text": "mon planning", "intent": "get_events_date", "slots": {}}
+{"text": "j'ai un rendez vous chez le docteur à quatorze heures aujourd'hui", "intent": "get_events_date", "slots": {"event_name": "rendez vous chez le docteur", "time": "quatorze heures", "date": "aujourd'hui"}}
+{"text": "quand a lieu le exposition de monet", "intent": "get_events_date", "slots": {"event_name": "exposition de monet"}}
+{"text": "olly y a t-il une chose quelconque dont je devrais être rappelé", "intent": "get_events_date", "slots": {}}
+{"text": "y a-t-il quelque chose que je devrais me souvenir", "intent": "get_events_date", "slots": {}}
+{"text": "olly quel est mon agenda pour le rappel de la semaine", "intent": "get_events_date", "slots": {"time": "rappel de la semaine"}}
+{"text": "quel est mon programme pour le rappel de la semaine", "intent": "get_events_date", "slots": {"time": "rappel de la semaine"}}
+{"text": "rappelle-moi mon emploi du temps pour l'après-midi", "intent": "create_event", "slots": {"timeofday": "l'après-midi"}}
+{"text": "planifier une conversation avec adam le jeudi après-midi", "intent": "create_event", "slots": {"event_name": "conversation", "person": "adam", "date": "jeudi", "timeofday": "après-midi"}}
+{"text": "ajouter un rappel de réunion pour dimanche avec mes beaux-parents", "intent": "create_event", "slots": {"event_name": "réunion", "date": "dimanche", "relation": "beaux-parents"}}
+{"text": "est-ce que j'ai réunion avec steve cette semaine", "intent": "get_events_date", "slots": {"event_name": "réunion", "person": "steve", "date": "cette semaine"}}
+{"text": "quand est l'anniversaire de peter", "intent": "get_events_date", "slots": {"event_name": "l'anniversaire", "person": "de peter"}}
+{"text": "s'il vous plaît mettre à mon calendrie stand-up quotidiennement jusqu'à dix heures du matin", "intent": "create_event", "slots": {"event_name": "stand-up", "general_frequency": "quotidiennement", "time": "dix heures du matin"}}
+{"text": "fixer une réunion bi hebdomadaire régulière le vendredi vers trois heure du soir", "intent": "create_event", "slots": {"event_name": "réunion", "general_frequency": "bi hebdomadaire", "date": "vendredi", "time": "trois heure du soir"}}
+{"text": "ajouter hebdomadaire treize heure appel au calendrier", "intent": "create_event", "slots": {"general_frequency": "hebdomadaire", "time": "treize heure", "event_name": "appel"}}
+{"text": "réunion avec pawel pour demain dix heure du matin", "intent": "create_event", "slots": {"event_name": "réunion", "person": "pawel", "date": "demain", "time": "dix heure du matin"}}
+{"text": "ajouter à mon calendrier appel quotidien à cinq heure du soir", "intent": "create_event", "slots": {"event_name": "appel", "general_frequency": "quotidien", "time": "cinq heure du soir"}}
+{"text": "définir la première semaine de juin comme jour férié dans mon calendrier", "intent": "create_event", "slots": {"time": "première semaine de juin", "event_name": "jour férié"}}
+{"text": "combien de rappels ai-je", "intent": "get_events_date", "slots": {}}
+{"text": "dit moi les rappels les plus vieux", "intent": "get_events_date", "slots": {}}
+{"text": "lire le rappel le plus récent", "intent": "get_events_date", "slots": {}}
+{"text": "quelle est la prochaine étape dans mon programme", "intent": "get_events_date", "slots": {}}
+{"text": "quand est ma prochaine réunion", "intent": "get_events_date", "slots": {"event_name": "réunion"}}
+{"text": "à quelle heure est la prochaine réunion", "intent": "get_events_date", "slots": {"event_name": "réunion"}}
+{"text": "rappelle moi de lire le livre la semaine prochaine", "intent": "create_event", "slots": {"media_type": "livre", "date": "semaine prochaine"}}
+{"text": "mettre rappel pour appeler pawel demain", "intent": "create_event", "slots": {"event_name": "appeler", "person": "pawel", "date": "demain"}}
+{"text": "ajouter à mes rappels pour voir nouveau film aujourd'hui à neuf heure du soir", "intent": "create_event", "slots": {"event_name": "voir nouveau film", "date": "aujourd'hui", "time": "neuf heure du soir"}}
+{"text": "rappelez-moi d'envoyer cet e-mail plus tard", "intent": "create_event", "slots": {"event_name": "e-mail"}}
+{"text": "rappelle moi de laver les vitres", "intent": "create_event", "slots": {"event_name": "laver les vitres"}}
+{"text": "dis-moi plus tard de déposer la facture", "intent": "create_event", "slots": {"event_name": "facture"}}
+{"text": "rappelle-moi d'aller à la gym chaque lundi et mardi", "intent": "create_event", "slots": {"event_name": "gym", "general_frequency": "chaque lundi", "date": "mardi"}}
+{"text": "rappelle-moi d'aller faire du shopping chaque semaine", "intent": "create_event", "slots": {"event_name": "shopping", "general_frequency": "chaque semaine"}}
+{"text": "rappelez-moi de payer le loyer chaque mois", "intent": "create_event", "slots": {"event_name": "loyer", "general_frequency": "chaque mois"}}
+{"text": "fixer une réunion avec hongbin", "intent": "create_event", "slots": {"event_name": "réunion", "person": "hongbin"}}
+{"text": "quel est le nom de l'événement", "intent": "get_events_date", "slots": {}}

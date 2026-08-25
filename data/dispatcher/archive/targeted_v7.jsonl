@@ -1,0 +1,16 @@
+{"text": "où est mon cv", "intent": "find_file", "slots": {"filename": "cv"}}
+{"text": "où est le fichier facture", "intent": "find_file", "slots": {"filename": "facture"}}
+{"text": "où est le pdf du rapport", "intent": "find_file", "slots": {"filename": "rapport", "extension": "pdf"}}
+{"text": "où as-tu rangé mon dossier", "intent": "find_file", "slots": {"filename": "dossier"}}
+{"text": "retrouve-moi le fichier photo", "intent": "find_file", "slots": {"filename": "photo"}}
+{"text": "je cherche le fichier contrat", "intent": "find_file", "slots": {"filename": "contrat"}}
+{"text": "trouve les documents qui parlent de contrat", "intent": "search_content", "slots": {"query": "contrat"}}
+{"text": "cherche le mot budget dans mes fichiers", "intent": "search_content", "slots": {"query": "budget"}}
+{"text": "quels fichiers mentionnent la facture", "intent": "search_content", "slots": {"query": "facture"}}
+{"text": "cherche dans mes notes le mot réunion", "intent": "search_content", "slots": {"query": "réunion"}}
+{"text": "quel titre est en train de jouer", "intent": "get_now_playing", "slots": {}}
+{"text": "quelle chanson passe en ce moment", "intent": "get_now_playing", "slots": {}}
+{"text": "c'est quel titre là", "intent": "get_now_playing", "slots": {}}
+{"text": "tu joues quoi en ce moment", "intent": "get_now_playing", "slots": {}}
+{"text": "quitte preview", "intent": "close_app", "slots": {"app_name": "Preview"}}
+{"text": "ferme l'application mails", "intent": "close_app", "slots": {"app_name": "Mails"}}
