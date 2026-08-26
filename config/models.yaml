@@ -1,10 +1,3 @@
-# ============================================================
-# OLYMPE — Registre déclaratif des modèles par rôle
-# ============================================================
-# Principe : zéro modèle codé en dur dans la logique métier.
-# Changer de modèle = éditer une ligne ici, jamais le code.
-# ============================================================
-
 roles:
   chat:
     repo: mlx-community/Qwen3-8B-4bit
@@ -18,8 +11,12 @@ roles:
     notes: "Base LoRA Palier 4 - resident en permanence"
 
   stt:
-    repo: mlx-community/whisper-large-v3-turbo
-    notes: "Cible roadmap - A REVALIDER : le chargement a échoué (processor HF manquant dans le cache)"
+    repo: mlx-community/Qwen3-ASR-1.7B-4bit
+    quantization: 4-bit
+    lang: French
+    sample_rate: 16000
+    hotwords: ["Olympe"]
+    notes: "Qwen3-ASR validé Palier 5 - 1.61 Go RAM, français supporté"
 
   tts:
     repo: mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit

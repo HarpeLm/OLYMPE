@@ -535,7 +535,75 @@ les cas hors scope partent en fallback vers le LLM principal)
 
 ---
 
-<!-- Prochaine entrée : Palier 5 — Couche vocale (wake word + STT + TTS) -->
+---
+
+## 2026-08-26 — Palier 5 : TTS validé (Qwen3-TTS CustomVoice)
+
+**Décision : Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit retenu pour le rôle `tts`**
+
+### Contexte — pivot depuis Kokoro
+
+La roadmap recommandait Kokoro pour le démarrage (léger, cohabite avec le LLM 8B
+sur 16 Go). Problème : Kokoro n'existe pas en MLX sur HuggingFace. Deux options :
+
+1. Convertir Kokoro nous-mêmes (travail en plus, pour un modèle qu'on jettera ensuite)
+2. Pivoter vers un TTS déjà en MLX qui supporte le clonage vocal
+   (objectif final : voix de la copine)
+
+Choix : option 2.
+
+### Modèles TTS disponibles en MLX
+
+| Modèle | Taille | Pertinence |
+|---|---|---|
+| Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit | 1.7B | Clonage vocal natif, famille Qwen, multilingue |
+| Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit | 1.7B | Conception de voix par description |
+| Fun-CosyVoice3-0.5B-2512-fp16 | 0.5B | Très léger, clonage zero-shot |
+| Chatterbox-TTS-8bit | moyen | Clonage (Resemble AI) |
+| Voxtral-4B-TTS-2603-mlx-6bit | 4B | Trop lourd pour cohabiter sereinement |
+
+### Introspection de l'API
+
+Chargement en 58s au premier lancement (~2.5 Go téléchargés), 2.76 Go en mémoire,
+24 kHz, français supporté nativement.
+
+Signature de generate() :
+
+    generate(
+        text: str,
+        voice: Optional[str] = None,      # Voix prédéfinie (serena, vivian, ...)
+        ref_audio: str | array = None,    # Audio de référence pour clonage
+        ref_text: Optional[str] = None,   # Texte de l'audio de référence
+        lang_code: str = 'auto',          # 'french' pour forcer
+        speed: float = 1.0,
+        stream: bool = False,
+    ) -> Generator[GenerationResult]
+
+9 voix prédéfinies : serena, vivian, uncle_fu, ryan, aiden, ono_anna, sohee, eric, dylan.
+
+### Deux modes d'utilisation
+
+1. **Voix prédéfinie** (voice="serena") : pour démarrer sans enregistrement
+2. **Clonage zero-shot** (ref_audio + ref_text) : pour la voix de la copine,
+   un échantillon propre de 10-15 secondes suffira
+
+### Stratégie mémoire
+
+Conformément à la roadmap : wake word + dispatcheur résidents en permanence,
+STT/TTS chargés/déchargés à la demande autour de chaque interaction
+(implémenté dans voice/tts.py avec TTSEngine.load()/unload()).
+
+### Artefacts produits
+
+- `voice/tts.py` : moteur TTS avec chargement/déchargement à la demande
+- `config/models.yaml` : entrée `tts` avec repo, default_voice, lang, sample_rate
+
+**Critère de sortie P5 (partiel) : TTS VALIDÉ** — reste STT + wake word
+pour fermer la boucle vocale complète.
+
+---
+
+<!-- Prochaine entrée : Palier 5 — STT (Qwen3-ASR) + wake word -->
 
 ---
 
@@ -655,4 +723,72 @@ les cas hors scope partent en fallback vers le LLM principal)
 
 ---
 
-<!-- Prochaine entrée : Palier 5 — Couche vocale (wake word + STT + TTS) -->
+---
+
+## 2026-08-26 — Palier 5 : TTS validé (Qwen3-TTS CustomVoice)
+
+**Décision : Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit retenu pour le rôle `tts`**
+
+### Contexte — pivot depuis Kokoro
+
+La roadmap recommandait Kokoro pour le démarrage (léger, cohabite avec le LLM 8B
+sur 16 Go). Problème : Kokoro n'existe pas en MLX sur HuggingFace. Deux options :
+
+1. Convertir Kokoro nous-mêmes (travail en plus, pour un modèle qu'on jettera ensuite)
+2. Pivoter vers un TTS déjà en MLX qui supporte le clonage vocal
+   (objectif final : voix de la copine)
+
+Choix : option 2.
+
+### Modèles TTS disponibles en MLX
+
+| Modèle | Taille | Pertinence |
+|---|---|---|
+| Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit | 1.7B | Clonage vocal natif, famille Qwen, multilingue |
+| Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit | 1.7B | Conception de voix par description |
+| Fun-CosyVoice3-0.5B-2512-fp16 | 0.5B | Très léger, clonage zero-shot |
+| Chatterbox-TTS-8bit | moyen | Clonage (Resemble AI) |
+| Voxtral-4B-TTS-2603-mlx-6bit | 4B | Trop lourd pour cohabiter sereinement |
+
+### Introspection de l'API
+
+Chargement en 58s au premier lancement (~2.5 Go téléchargés), 2.76 Go en mémoire,
+24 kHz, français supporté nativement.
+
+Signature de generate() :
+
+    generate(
+        text: str,
+        voice: Optional[str] = None,      # Voix prédéfinie (serena, vivian, ...)
+        ref_audio: str | array = None,    # Audio de référence pour clonage
+        ref_text: Optional[str] = None,   # Texte de l'audio de référence
+        lang_code: str = 'auto',          # 'french' pour forcer
+        speed: float = 1.0,
+        stream: bool = False,
+    ) -> Generator[GenerationResult]
+
+9 voix prédéfinies : serena, vivian, uncle_fu, ryan, aiden, ono_anna, sohee, eric, dylan.
+
+### Deux modes d'utilisation
+
+1. **Voix prédéfinie** (voice="serena") : pour démarrer sans enregistrement
+2. **Clonage zero-shot** (ref_audio + ref_text) : pour la voix de la copine,
+   un échantillon propre de 10-15 secondes suffira
+
+### Stratégie mémoire
+
+Conformément à la roadmap : wake word + dispatcheur résidents en permanence,
+STT/TTS chargés/déchargés à la demande autour de chaque interaction
+(implémenté dans voice/tts.py avec TTSEngine.load()/unload()).
+
+### Artefacts produits
+
+- `voice/tts.py` : moteur TTS avec chargement/déchargement à la demande
+- `config/models.yaml` : entrée `tts` avec repo, default_voice, lang, sample_rate
+
+**Critère de sortie P5 (partiel) : TTS VALIDÉ** — reste STT + wake word
+pour fermer la boucle vocale complète.
+
+---
+
+<!-- Prochaine entrée : Palier 5 — STT (Qwen3-ASR) + wake word -->
