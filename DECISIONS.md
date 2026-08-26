@@ -732,7 +732,83 @@ entraînement "Olympe" planifié post-P5)
 
 ---
 
-<!-- Prochaine entrée : Palier 5 — Assemblage boucle complète wake → STT → LLM → TTS -->
+---
+
+## 2026-08-26 — Palier 5 : boucle vocale complète validée
+
+**Décision : boucle wake → STT → LLM → TTS fonctionnelle, avec déviation mémoire assumée**
+
+### Critère de sortie P5
+
+Roadmap : "Wake word → STT → LLM → TTS en boucle complète"
+
+### Les deux chemins validés
+
+**Chemin déterministe** (sans réveiller le 8B) :
+- Wake word détecté (score 0.86) → STT → "Quel temps fait il à Paris?"
+- Dispatcheur : intent=get_weather, confiance=0.9, action=deterministic
+- Réponse locale immédiate, lue par le TTS
+
+**Chemin fallback LLM** (réveille le 8B) :
+- Wake word détecté (score 0.74) → STT → "Comment fonctionne un trou noir?"
+- Dispatcheur : intent=general_question, confiance=0.0, action=fallback
+- Requête HTTP vers le serveur vllm-mlx, réponse générée par le 8B, lue par le TTS
+
+### Déviation mémoire par rapport à la roadmap §7
+
+La roadmap supposait : "charger/décharger STT et TTS à la demande autour de
+chaque interaction. Coût : quelques centaines de ms de latence additionnelle
+par cycle, à mesurer précisément une fois codé."
+
+**Mesure effective** : le chargement d'un modèle de 1.7B prend plusieurs
+secondes, même depuis le cache HF. Ce coût par cycle était :
+1. Trop élevé pour une conversation fluide
+2. Source d'un bug de timing : le bip sonnait avant la fin du chargement,
+   le micro n'enregistrait pas encore, la commande était ratée
+   (transcription "Chelto" au lieu de la vraie phrase)
+
+**Décision** : garder STT + TTS résidents permanents, préchargés au démarrage.
+
+### Budget mémoire vérifié
+
+| Composant | Résidence | Empreinte |
+|---|---|---|
+| Wake word (openWakeWord hey_jarvis) | Résident | < 100 Mo |
+| Dispatcheur (Qwen2.5-0.5B LoRA) | Résident | ~0.5 Go |
+| STT (Qwen3-ASR-1.7B-4bit) | Résident (déviation) | ~1.6 Go |
+| TTS (Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit) | Résident (déviation) | ~2.7 Go |
+| Serveur LLM (Qwen3-8B-4bit, processus séparé) | Résident | ~4.7 Go |
+| **Total** | | **~10 Go sur 16** |
+
+Marge restante : ~6 Go pour le système et les pics d'activité.
+
+### Artefacts produits
+
+- `voice/pipeline.py` : orchestrateur de la boucle complète
+- `voice/wake_word.py` : moteur de détection config-driven
+- `voice/stt.py` : moteur STT (Qwen3-ASR)
+- `voice/tts.py` : moteur TTS (Qwen3-TTS CustomVoice)
+- `config/models.yaml` : entrées wake_word, stt, tts complètes
+
+### Problème résiduel connu
+
+Segfault à la sortie quand Ctrl+C est pressé pendant un appel au LLM.
+Le KeyboardInterrupt est attrapé, mais la destruction des modèles MLX et
+des streams audio encore ouverts provoque un crash de nettoyage.
+Non bloquant en fonctionnement normal, à corriger avec un handler de signal.
+
+### Justification de la déviation
+
+Le principe roadmap était "à mesurer précisément une fois codé". Mesure faite,
+l'hypothèse initiale (centaines de ms) est invalidée par la réalité (secondes).
+Adapter la stratégie mémoire en conséquence est conforme à l'esprit de la
+roadmap : documenter les écarts plutôt que les subir.
+
+**Critère de sortie P5 : VALIDÉ**
+
+---
+
+<!-- Prochaine entrée : Palier 6 — Agentivité (MCP) + mémoire (SQLite) -->
 
 ---
 
