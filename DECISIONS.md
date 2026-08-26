@@ -603,7 +603,136 @@ pour fermer la boucle vocale complète.
 
 ---
 
-<!-- Prochaine entrée : Palier 5 — STT (Qwen3-ASR) + wake word -->
+---
+
+## 2026-08-26 — Palier 5 : STT validé (Qwen3-ASR)
+
+**Décision : Qwen3-ASR-1.7B-4bit retenu pour le rôle `stt`**
+
+### Contexte — pivot depuis Whisper
+
+La roadmap recommandait Whisper large-v3-turbo. Problème : le chargement
+échoue avec une erreur de processor HuggingFace manquant dans le cache local.
+Plutôt que de debugger un problème de cache incertain, on pivote vers
+Qwen3-ASR qui :
+- Est déjà converti MLX et se charge sans erreur
+- Cohérent avec l'écosystème Qwen (chat + dispatcheur + TTS + STT)
+- Plus léger que Whisper (1.61 Go vs ~3 Go)
+
+### Introspection de l'API
+
+Chargement en 10s, 1.61 Go en mémoire, 16 kHz, français supporté.
+
+Signature de generate() :
+
+    generate(
+        audio: str | ndarray | list,   # Chemin fichier ou array numpy
+        language: Optional[str] = None, # "French" pour forcer
+        temperature: float = 0.0,
+        hotwords: Optional[List[str]] = None,
+        stream: bool = False,
+    ) -> STTOutput  # attribut .text
+
+31 langues supportées dont français, anglais, allemand, espagnol, italien.
+
+### Résultats des tests
+
+| Test | Résultat | Verdict |
+|---|---|---|
+| Fichier WAV (TTS 24 kHz) | "Mangue, comment faire du zérai" | Raté — rééchantillonnage 24→16 kHz non géré en mode fichier |
+| Micro one-shot 5s | "Salut, comment vas tu" | Parfait |
+| Micro continu 3s | 4 phrases impeccables dont "Olympe" | Parfait |
+
+Le test fichier échoue car le TTS génère en 24 kHz et Qwen3-ASR attend
+16 kHz. Non bloquant : dans le vrai flux OLYMPE, le STT reçoit toujours
+l'entrée micro à 16 kHz via AudioRecorder.
+
+### Stratégie mémoire
+
+Conformément à la roadmap : STT chargé/déchargé à la demande autour de
+chaque interaction (implémenté dans voice/stt.py avec STTEngine.load()/unload()).
+
+### Artefacts produits
+
+- `voice/stt.py` : moteur STT avec chargement/déchargement à la demande,
+  modes fichier/one-shot/continu
+- `config/models.yaml` : entrée `stt` avec repo, lang, sample_rate, hotwords
+
+**Critère de sortie P5 (partiel) : STT VALIDÉ**
+
+---
+
+## 2026-08-26 — Palier 5 : wake word provisoire (hey_jarvis)
+
+**Décision : `hey_jarvis` (pré-entraîné openWakeWord) comme wake word de
+travail, entraînement d'"Olympe" reporté post-P5**
+
+### Contexte
+
+openWakeWord installé et fonctionnel (onnxruntime, pas tflite).
+6 modèles pré-entraînés disponibles : alexa, hey_jarvis, hey_mycroft,
+hey_rhasspy, timer, weather.
+
+Test de détection "hey jarvis" : 6/6 détections, scores 0.67 à 0.98.
+Test via voice/wake_word.py config-driven : 3/3 détections, scores 0.80
+à 0.87.
+
+### Pourquoi pas "Olympe" tout de suite
+
+L'API Python locale `train_custom_verifier` ne crée qu'un filtre secondaire
+sur un wake word existant, pas un nouveau modèle. L'entraînement complet
+d'un mot personnalisé nécessite des milliers d'échantillons synthétiques
+générés par TTS, via le notebook Colab officiel openWakeWord.
+
+Les modules `openwakeword.train` et `openwakeword.data` échouent à l'import
+(dépendances torchinfo et pronouncing manquantes), confirmant que le
+pipeline d'entraînement complet n'est pas conçu pour tourner localement
+avec seulement 15 échantillons.
+
+### Ce qui est conservé pour l'entraînement futur
+
+15 échantillons réels de "Olympe" enregistrés et validés dans
+`voice/wake_samples/` :
+- Format : WAV 16 kHz, mono, 16-bit, 1.5s chacun
+- RMS moyen : 604 (min 301, max 1052)
+- 15/15 utilisables (seuil RMS >= 300)
+
+Ces échantillons serviront de référence positive pour l'entraînement
+Colab futur.
+
+### Plan d'entraînement "Olympe" (post-P5)
+
+1. Utiliser le notebook Colab officiel openWakeWord
+   (https://github.com/dscripka/openWakeWord#training-new-models)
+2. Générer des milliers d'échantillons synthétiques de "Olympe" via TTS
+3. Inclure les 15 échantillons réels comme données positives
+4. Exporter le modèle entraîné dans `voice/wake_models/olympe.onnx`
+5. Remplacer UNE ligne dans `config/models.yaml` :
+   `model: hey_jarvis` → `model: voice/wake_models/olympe.onnx`
+6. Zéro changement de code : voice/wake_word.py est config-driven
+
+### Justification du report
+
+Fermer la boucle vocale complète (wake → STT → LLM → TTS) prime sur le
+mot exact. L'architecture config-driven rend la bascule triviale une
+fois le modèle "Olympe" entraîné.
+
+### Artefacts produits
+
+- `voice/wake_word.py` : moteur de détection config-driven, résident
+  permanent, callback à chaque détection
+- `config/models.yaml` : entrée `wake_word` avec model, threshold,
+  inference_framework
+- `voice/record_wake_samples.py` : script d'enregistrement des échantillons
+- `voice/check_wake_samples.py` : diagnostic qualité (RMS, silence, clipping)
+- `voice/wake_samples/` : 15 échantillons "Olympe" validés
+
+**Critère de sortie P5 (partiel) : WAKE WORD VALIDÉ** (provisoire —
+entraînement "Olympe" planifié post-P5)
+
+---
+
+<!-- Prochaine entrée : Palier 5 — Assemblage boucle complète wake → STT → LLM → TTS -->
 
 ---
 

@@ -27,8 +27,15 @@ roles:
     notes: "Validé Palier 5 le 2026-08-26 - clonage vocal natif (objectif voix copine), FR supporté, 2.76 Go RAM"
 
   wake_word:
-    repo: null
-    notes: "openWakeWord - à configurer au Palier 5 (mot 'Olympe' = entrainement dédié)"
+    # Modèle de travail temporaire : hey_jarvis (pré-entraîné openWakeWord).
+    # TODO Palier 5 suite : entraîner "Olympe" via le notebook Colab officiel
+    # openWakeWord (https://github.com/dscripka/openWakeWord#training-new-models)
+    # puis remplacer le chemin ci-dessous par voice/wake_models/olympe.onnx.
+    # Zéro changement de code nécessaire : seul ce champ change.
+    model: hey_jarvis
+    threshold: 0.5
+    inference_framework: onnx
+    notes: "Provisoire - voir DECISIONS.md pour le plan d'entraînement Olympe"
 
 server:
   engine: vllm-mlx
