@@ -1,3 +1,10 @@
+# ============================================================
+# OLYMPE — Registre déclaratif des modèles par rôle
+# ============================================================
+# Principe : zéro modèle codé en dur dans la logique métier.
+# Changer de modèle = éditer une ligne ici, jamais le code.
+# ============================================================
+
 roles:
   chat:
     repo: mlx-community/Qwen3-8B-4bit
@@ -10,9 +17,21 @@ roles:
     adapter: training/adapters/dispatcher-best
     notes: "Base LoRA Palier 4 - resident en permanence"
 
-  stt: null
-  tts: null
-  wake_word: null
+  stt:
+    repo: mlx-community/whisper-large-v3-turbo
+    notes: "Cible roadmap - A REVALIDER : le chargement a échoué (processor HF manquant dans le cache)"
+
+  tts:
+    repo: mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit
+    quantization: 6-bit
+    default_voice: serena
+    lang: french
+    sample_rate: 24000
+    notes: "Validé Palier 5 le 2026-08-26 - clonage vocal natif (objectif voix copine), FR supporté, 2.76 Go RAM"
+
+  wake_word:
+    repo: null
+    notes: "openWakeWord - à configurer au Palier 5 (mot 'Olympe' = entrainement dédié)"
 
 server:
   engine: vllm-mlx
