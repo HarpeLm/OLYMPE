@@ -15,7 +15,7 @@ roles:
     quantization: 4-bit
     lang: French
     sample_rate: 16000
-    hotwords: ["Olympe"]
+    hotwords: ["Olympe", "Tadej Pogačar", "Pogačar"]
     notes: "Qwen3-ASR validé Palier 5 - 1.61 Go RAM, français supporté"
 
   tts:

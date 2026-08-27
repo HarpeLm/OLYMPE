@@ -997,3 +997,145 @@ pour fermer la boucle vocale complète.
 ---
 
 <!-- Prochaine entrée : Palier 5 — STT (Qwen3-ASR) + wake word -->
+
+
+---
+
+## 2026-08-27 — Palier 6 : fallback déterministe → LLM avec outils MCP
+
+**Décision : quand le dispatcheur route vers un intent déterministe mais que
+le handler correspondant n'existe pas encore (Palier 7), basculer sur le
+LLM avec outils MCP plutôt que répondre un placeholder inutile**
+
+### Contexte
+
+Le dispatcheur classe parfois "quelle heure est-il ?" en `get_now_playing`
+(intent musique, confiance 0.9) — faux routage qui sera corrigé au prochain
+entraînement. Avant ce patch, le pipeline répondait alors le placeholder
+"J'ai bien compris, tu veux : get now playing. Cette action sera disponible
+au Palier 7", ce qui bloquait l'accès aux outils MCP.
+
+### Comportement choisi
+
+`try_execute_handler(result)` :
+- Si le fichier handler existe (integrations/*.py) → l'exécuter
+- Sinon → basculer sur `llm_with_tools(text)` pour que le LLM + outils MCP
+  prennent le relais
+
+### Bénéfice
+
+Les requêtes mal routées par le dispatcheur ne sont plus des culs-de-sac.
+Le LLM avec outils MCP devient le filet de sécurité universel, cohérent
+avec le rôle de fallback du Palier 4.
+
+**Critère de sortie P6 (tool-calling) : EN COURS**
+
+---
+
+<!-- Prochaine entrée : Palier 6 — validation tool-calling en boucle vocale -->
+
+
+---
+
+## 2026-08-27 — Palier 7 (anticipé) : recherche web via SearXNG local (EXCEPTION CONSCIENTE)
+
+**Décision : outil MCP web_search adossé à une instance SearXNG auto-hébergée
+(Docker sur le Mac), tracé comme exception au principe « zéro app tierce »**
+
+### Contexte
+
+Roadmap §7 : « Toute recherche web en temps réel réintroduit une dépendance
+externe — à accepter explicitement comme exception si nécessaire ».
+Roadmap §11 point 3 laissait le choix ouvert. Tranché : exception acceptée,
+mais contenue au maximum.
+
+### Pourquoi SearXNG plutôt que Brave / Tavily / DuckDuckGo
+
+- Brave / Tavily : API officielles mais carte bancaire + compte + requête vers un tiers
+- DuckDuckGo : pas de clé mais scraping non officiel, fragile
+- SearXNG : auto-hébergé, zéro clé, zéro compte, zéro CB ; la seule requête
+  sortante part de MON instance vers les moteurs, anonymisée par SearXNG
+
+### Comment l'exception est contenue
+
+- Service isolé dans Docker, lié à 127.0.0.1:8888 (jamais exposé au réseau)
+- ~200-300 Mo RAM, --restart unless-stopped
+- Outil appelé uniquement par le LLM sur demande explicite de l'utilisateur
+- Réversible : supprimer le conteneur + l'outil = exception supprimée
+
+### Setup (commande unique)
+
+docker run -d --name searxng -p 127.0.0.1:8888:8080 -v "$HOME/searxng/settings.yml:/etc/searxng/settings.yml:ro" --restart unless-stopped searxng/searxng
+
+---
+
+---
+
+## 2026-08-27 — Palier 4 : pré-filtre regex pour les intents manquants
+
+Décision : ajouter router/prefilter.py qui court-circuite le dispatcheur
+NLU pour les motifs évidents hors taxonomie (roadmap §4 [1]).
+
+Contexte : batch de 15 phrases (data/dispatcher/batch_feedback.py) :
+intents connus = 9/9, phrases hors taxonomie = 0/6. Le modèle force des
+routages à confiance 0.9 sur l'intent le plus proche sémantiquement
+(« quelle heure est-il » → get_now_playing).
+
+Solution : règles regex en début de route() : heure/date/minuteur →
+fallback forcé ; météo → get_weather forcé. Le fallback active le LLM 8B
+avec outils MCP (handler déterministe absent → llm_with_tools()).
+
+Résultat mesuré : précision du batch 60 % → ~87 %, sans retraining.
+
+Fichiers : router/prefilter.py (nouveau), router/dispatcher.py (patch).
+
+---
+
+---
+
+## 2026-08-27 — Palier 7 (anticipé) : recherche web via SearXNG local
+
+Décision : outil MCP web_search adossé à une instance SearXNG
+auto-hébergée (Docker), tracé comme EXCEPTION CONSCIENTE au principe
+« zéro app tierce » (roadmap §7 et §11 point 3).
+
+Alternatives rejetées : Brave/Tavily (carte bancaire requise même en
+gratuit), DuckDuckGo scraping (fragile), Avacyn/qwen3-0.6B-french-instruct
+(pas de MLX, packaging cassé, tool-calling dégradé, 0 validation).
+
+Pourquoi SearXNG : auto-hébergé, zéro CB/clé/compte, API JSON stable,
+requêtes anonymisées, choix dominant des projets self-hosted.
+
+Containment : lié à 127.0.0.1:8888 uniquement, ~300 Mo RAM, appelé
+seulement sur demande explicite, réversible (docker rm -f searxng).
+
+Setup reproductible (une ligne) :
+docker run -d --name searxng -p 127.0.0.1:8888:8080 -v "$HOME/searxng/settings.yml:/etc/searxng/settings.yml:ro" --restart unless-stopped searxng/searxng
+
+Validé en boucle vocale : « président des États-Unis » → web_search →
+réponse correcte via SearXNG.
+
+---
+
+---
+
+## 2026-08-27 — Palier 6 : désactivation du raisonnement visible (/no_think)
+
+Décision : suffixer /no_think au prompt utilisateur, max_tokens 1024, et
+nettoyage multi-cas clean_llm_content() dans voice/pipeline.py.
+
+Contexte : sur « président des États-Unis », le LLM a appelé web_search
+correctement MAIS a brûlé tout son budget (500 tokens) à raisonner en
+anglais sans jamais fermer la balise de raisonnement → le TTS a lu ses
+pensées à voix haute.
+
+Solution en 3 couches : /no_think (désactive le reasoning Qwen3, plus
+rapide et concis), max_tokens 1024 (marge tool-call + réponse),
+clean_llm_content() (split sur balise fermante ; si ouverture sans
+fermeture, tout le raisonnement est jeté ; filet de sécurité si vide).
+
+Justification : le raisonnement profond sert au debug, pas au TTS.
+/no_think ne dégrade pas le tool-calling (validé au test suivant :
+« quelle heure est-il » → « Il est 14 heures 07 minutes », sans fuite).
+
+---

@@ -11,6 +11,7 @@ Usage :
     python router/dispatcher.py "allume le bluetooth"
     python router/dispatcher.py            # mode interactif
 """
+from router.prefilter import prefilter
 import json
 import sys
 import time
@@ -114,6 +115,26 @@ class Dispatcher:
         return clean
 
     def route(self, text):
+        # Pré-filtre regex (roadmap §4 [1]) — court-circuite les motifs évidents
+        forced_intent, reason = prefilter(text)
+        if forced_intent == "fallback":
+            print(f"[PREFILTER] {reason} → fallback forcé")
+            entry = {
+                "ts": int(time.time()),
+                "text": text,
+                "raw_intent": None,
+                "intent": "general_question",
+                "slots": {},
+                "confidence": 0.0,
+                "action": "fallback",
+                "handler": None,
+            }
+            with open(self.log_path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+            return entry
+        elif forced_intent:
+            print(f"[PREFILTER] {reason} → {forced_intent} forcé")
+
         messages = [
             {"role": "system", "content": self.system_prompt},
             {"role": "user", "content": text},
@@ -148,7 +169,9 @@ class Dispatcher:
         elif required_missing:
             confidence = 0.45
         else:
-            confidence = 0.9
+            # 0.75 au lieu de 0.9 : plus conservateur, laisse passer en fallback
+            # les cas ambigus où le modèle est sûr de lui mais se trompe
+            confidence = 0.75
 
         if intent_known and confidence >= self.threshold:
             action, handler = "deterministic", self.schemas[intent]["handler"]
@@ -167,6 +190,13 @@ class Dispatcher:
         }
         with open(self.log_path, "a", encoding="utf-8") as f:
             f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        # Override si prefilter a forcé un intent déterministe
+        if forced_intent and forced_intent != "fallback":
+            entry["intent"] = forced_intent
+            entry["action"] = "deterministic"
+            entry["confidence"] = 1.0
+            entry["handler"] = self.schemas.get(forced_intent, {}).get("handler")
+
         return entry
 
 

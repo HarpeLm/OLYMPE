@@ -61,7 +61,7 @@ def command_exists(cmd):
     return shutil.which(executable) is not None
 
 
-def build_command(cfg):
+def build_command(cfg, mcp_config=None):
     roles = cfg.get("roles", {})
     chat = roles.get("chat") or {}
     repo = chat.get("repo")
@@ -121,6 +121,16 @@ def build_command(cfg):
         if server.get("trust_remote_code", False):
             cmd += ["--trust-remote-code"]
 
+        # Support MCP : argument CLI prioritaire, sinon config YAML
+        mcp_path = mcp_config or server.get("mcp_config")
+        if mcp_path:
+            mcp_path = Path(mcp_path)
+            if not mcp_path.is_absolute():
+                mcp_path = ROOT / mcp_path
+            if not mcp_path.exists():
+                sys.exit(f"❌ Fichier MCP introuvable : {mcp_path}")
+            cmd += ["--mcp-config", str(mcp_path)]
+
     extra_args = server.get("extra_args") or []
     cmd += [str(x) for x in extra_args]
 
@@ -130,10 +140,15 @@ def build_command(cfg):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--mcp-config",
+        help="Chemin vers le fichier de configuration MCP "
+             "(prioritaire sur la valeur dans models.yaml)",
+    )
     args = parser.parse_args()
 
     cfg = load_config()
-    cmd, repo, engine = build_command(cfg)
+    cmd, repo, engine = build_command(cfg, mcp_config=args.mcp_config)
 
     print(f"Moteur : {engine}")
     print(f"Modèle : {repo}")
