@@ -100,6 +100,41 @@ async def list_tools() -> list[Tool]:
             }
         ),
         Tool(
+            name="remember",
+            description="Mémorise un fait durable (préférence, info personnelle)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "content": {"type": "string", "description": "Le fait à mémoriser"},
+                    "category": {"type": "string", "description": "Catégorie (préférence, info, etc.)"}
+                },
+                "required": ["content"]
+            }
+        ),
+        Tool(
+            name="recall",
+            description="Recherche dans les faits mémorisés",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "query": {"type": "string", "description": "Mot-clé de recherche"},
+                    "category": {"type": "string", "description": "Filtrer par catégorie"}
+                },
+                "required": []
+            }
+        ),
+        Tool(
+            name="forget",
+            description="Oublie un fait mémorisé (par son id)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "fact_id": {"type": "integer", "description": "ID du fait à oublier"}
+                },
+                "required": ["fact_id"]
+            }
+        ),
+        Tool(
             name="web_search",
             description="Recherche sur internet via l'instance SearXNG locale (EXCEPTION CONSCIENTE roadmap §7)",
             inputSchema={
@@ -194,6 +229,39 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
             return [TextContent(type="text", text=f"Météo {city} : {results[0].get('content', '')[:200]}")]
         except Exception as e:
             return [TextContent(type="text", text=f"Erreur météo : {e}")]
+
+    elif name == "remember":
+        try:
+            from agent.memory import Memory
+        except ImportError:
+            from memory import Memory
+        m = Memory()
+        fid = m.remember(arguments.get("content", ""), arguments.get("category", "general"))
+        m.close()
+        return [TextContent(type="text", text=f"C'est noté, je m'en souviendrai (id={fid}).")]
+
+    elif name == "recall":
+        try:
+            from agent.memory import Memory
+        except ImportError:
+            from memory import Memory
+        m = Memory()
+        results = m.recall(query=arguments.get("query"), category=arguments.get("category"), limit=5)
+        m.close()
+        if not results:
+            return [TextContent(type="text", text="Je n'ai aucun souvenir correspondant.")]
+        return [TextContent(type="text", text="Souvenirs : " + " ; ".join(
+            f"{r['content']} [{r['category']}]" for r in results))]
+
+    elif name == "forget":
+        try:
+            from agent.memory import Memory
+        except ImportError:
+            from memory import Memory
+        m = Memory()
+        m.forget(arguments.get("fact_id", 0))
+        m.close()
+        return [TextContent(type="text", text="C'est oublié.")]
 
     elif name == "web_search":
         query = arguments.get("query", "")

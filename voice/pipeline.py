@@ -16,6 +16,7 @@ import json
 import queue
 import sys
 import time
+import uuid
 from pathlib import Path
 
 import numpy as np
@@ -31,6 +32,7 @@ from voice.wake_word import WakeWordEngine
 from voice.stt import STTEngine
 from voice.tts import TTSEngine
 from router.dispatcher import Dispatcher
+from agent.memory import Memory
 
 SAMPLE_RATE = 16000
 BLOCK_SIZE = 1280
@@ -44,7 +46,11 @@ SYSTEM_PROMPT = (
     "l'utilisateur. Réponds en français, de façon concise et naturelle, "
     "en une ou deux phrases adaptées à une lecture à voix haute. "
     "Évite les listes, les tableaux et le formatage markdown. "
-    "Utilise les outils disponibles quand nécessaire."
+    "Utilise les outils disponibles quand nécessaire. "
+    "MÉMOIRE : si l'utilisateur te demande de te souvenir de quelque chose, "
+    "appelle d'abord l'outil remember avec ce fait, puis confirme. "
+    "Si on te demande ce dont tu te souviens, appelle recall et réponds "
+    "uniquement à partir de son résultat, sans rien inventer."
 )
 
 
@@ -169,6 +175,8 @@ class VoicePipeline:
         self.tts.load()
         self.llm = LLMClient()
         self.mcp = MCPBridge()
+        self.memory = Memory()
+        self.session_id = str(uuid.uuid4())[:8]
 
         try:
             self.tools = self.mcp.list_tools_openai()
@@ -219,10 +227,14 @@ class VoicePipeline:
 
         return content.strip()
 
+    def _memory_context(self):
+        ctx = self.memory.context_prompt()
+        return "\n\n" + ctx if ctx else ""
+
     def llm_with_tools(self, text):
         """Boucle tool-calling : détecte, exécute via MCP, réinjecte."""
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "system", "content": SYSTEM_PROMPT + self._memory_context()},
             {"role": "user", "content": text + "\\n/no_think"},
         ]
 
@@ -282,10 +294,14 @@ class VoicePipeline:
             if response is not None:
                 return response
             print("[PIPELINE] Handler non implémenté → LLM + outils MCP")
-            return self.llm_with_tools(text)
+            answer = self.llm_with_tools(text)
+            self.memory.log_turn(self.session_id, text, answer)
+            return answer
 
         print("[PIPELINE] Fallback LLM avec outils MCP...")
-        return self.llm_with_tools(text)
+        answer = self.llm_with_tools(text)
+        self.memory.log_turn(self.session_id, text, answer)
+        return answer
 
     def try_execute_handler(self, result):
         """Exécute le handler déterministe s'il existe (intégrations P7)."""

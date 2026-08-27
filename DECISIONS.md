@@ -1234,3 +1234,39 @@ Prochain cycle : retrain quand inference_log.jsonl aura ~200 phrases
 réelles nouvelles (boucle continue roadmap §4, pas de bench manuel).
 
 ---
+
+---
+
+## 2026-08-27 — Palier 6 : mémoire persistante SQLite validée
+
+Décision : mémoire via SQLite local (agent/memory.py), exposée en 3 outils
+MCP (remember/recall/forget) + contexte injecté au system prompt +
+pré-filtre déterministe pour « souviens-toi que… ».
+
+Architecture en 3 couches :
+- [1] pré-filtre déterministe : regex « souviens-toi que / mémorise que /
+      n'oublie pas que » -> écriture directe dans facts, ~0 ms, sans LLM
+      (esprit roadmap §4 [1])
+- [2] injection de contexte : 5 faits + 3 tours récents injectés dans le
+      system prompt du 8B à chaque requête (réponse immédiate sans outil)
+- [3] outils MCP remember/recall/forget pour les cas flexibles
+      (catalogue porté à 12 outils)
+
+Stockage : data/memory/olympe.db (gitignoré). Table facts (indéfinie) +
+table turns (purgée 7 jours). Zéro dépendance externe (sqlite3 = stdlib).
+
+Friction apprise (documentée pour ne pas la répéter) :
+- Un 8B en /no_think avec un prompt vague (« utilise les outils quand
+  nécessaire ») n'appelle JAMAIS remember : il perroquette. Deux facteurs
+  aggravants : historique injecté montrant ses propres réponses sans appel
+  d'outil (empoisonnement few-shot), et réflexe /no_think de répondre direct.
+- Correctifs efficaces : instruction explicite au system prompt (« si on te
+  demande de te souvenir, appelle d'abord remember ») + pré-filtre
+  déterministe sur les motifs évidents. Après correctif : remember appelé,
+  fait écrit en base, réponse correcte en session fraîche.
+
+Critère de sortie P6 : VALIDÉ
+- tool calling fiable : 12 outils, validés en boucle vocale et en texte
+- mémoire persistante entre sessions : les faits survivent au redémarrage
+
+---
