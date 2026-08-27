@@ -102,8 +102,8 @@ class Memory:
             return ""
         lines = ["MÉMOIRE OLYMPE :"]
         if facts:
-            lines.append("Faits connus :")
-            lines += [f"- [{f['category']}] {f['content']}" for f in facts]
+            lines.append("Faits connus sur l'UTILISATEUR (ces faits parlent de lui, pas de toi) :")
+            lines += [f"- [{f['category']}] l'utilisateur : {f['content']}" for f in facts]
         if turns:
             lines.append("Derniers échanges :")
             lines += [f"- U : {t['user']} / O : {t['assistant']}" for t in turns]

@@ -12,10 +12,11 @@
   - [ ] Entraînement (PC RTX ou Colab)
   - [ ] Intégration dans `voice/wake_word.py`
 
-## À venir (P7)
-- [ ] Intégrations système (Calendrier, Rappels, Notes via AppleScript)
-- [ ] Handlers déterministes pour intents calendrier
-- [ ] Tests silencieux des commandes AppleScript
+## En cours (P7)
+- [x] Calendrier Apple : création/lecture/dispo/conflits déterministes
+- [x] 7 handlers AppleScript + couche de réparation intent+slots
+- [ ] Rappels : create_reminder MCP existe, intent dédié à brancher si besoin
+- [ ] Notes Apple via AppleScript
 
 ## Décisions en attente (roadmap §11)
 - [x] vllm-mlx vs serveur maison → tranché : vllm-mlx (voir DECISIONS P2)

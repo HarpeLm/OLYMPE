@@ -32,6 +32,7 @@ from voice.wake_word import WakeWordEngine
 from voice.stt import STTEngine
 from voice.tts import TTSEngine
 from router.dispatcher import Dispatcher
+from router.prefilter import FAMILIES, repair_calendar_slots, calendar_intent_hint
 from agent.memory import Memory
 
 SAMPLE_RATE = 16000
@@ -211,6 +212,8 @@ class VoicePipeline:
                     return score
 
     def clean_llm_content(self, content):
+        import re as _re
+        content = _re.sub("[\U0001F300-\U0001FAFF\U00002600-\U000027BF]", "", content or "")
         """Nettoie toute fuite de raisonnement avant TTS."""
         if not content:
             return ""
@@ -288,6 +291,36 @@ class VoicePipeline:
         print(
             f"[PIPELINE] Intent={intent} | action={action} | confiance={confidence}"
         )
+
+        if action == "deterministic" and intent == "get_events_today":
+            import re as _re
+            if "aujourd" not in text.lower():
+                m = _re.search(
+                    r"(après-demain|demain|lundi|mardi|mercredi|jeudi|vendredi|"
+                    r"samedi|dimanche|\d{1,2}/\d{1,2}(?:/\d{4})?)", text, _re.I)
+                if m:
+                    result["intent"] = "get_events_date"
+                    result["slots"] = {"date": m.group(1).lower()}
+                    result["handler"] = self.dispatcher.schemas.get(
+                        "get_events_date", {}).get("handler")
+                    intent = "get_events_date"
+                    print(f"[REPAIR] rerouté get_events_date : {result['slots']}")
+
+        if action == "fallback":
+            in_cal = intent in FAMILIES.get("calendar", set())
+            hinted = calendar_intent_hint(text)
+            if in_cal or hinted:
+                target = intent if in_cal else hinted
+                repaired = repair_calendar_slots(text, result.get("slots"))
+                if repaired.get("title") or target != "create_event":
+                    result["intent"] = target
+                    result["slots"] = repaired
+                    result["action"] = "deterministic"
+                    result["confidence"] = 0.75
+                    result["handler"] = self.dispatcher.schemas.get(target, {}).get("handler")
+                    action = "deterministic"
+                    intent = target
+                    print(f"[REPAIR] intent {target} + slots : {repaired}")
 
         if action == "deterministic":
             response = self.try_execute_handler(result)

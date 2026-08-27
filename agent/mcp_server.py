@@ -135,6 +135,29 @@ async def list_tools() -> list[Tool]:
             }
         ),
         Tool(
+            name="create_calendar_event",
+            description="Crée un événement dans le Calendrier Apple (calendrier Olympe)",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "title": {"type": "string", "description": "Titre de l'événement"},
+                    "date": {"type": "string", "description": "aujourd'hui / demain / vendredi / 28/08"},
+                    "time": {"type": "string", "description": "ex: 14h30 ou 14:30"}
+                },
+                "required": ["title"]
+            }
+        ),
+        Tool(
+            name="get_next_calendar_event",
+            description="Prochain événement du Calendrier Apple (7 prochains jours)",
+            inputSchema={"type": "object", "properties": {}, "required": []}
+        ),
+        Tool(
+            name="get_todays_events",
+            description="Événements du jour dans le Calendrier Apple",
+            inputSchema={"type": "object", "properties": {}, "required": []}
+        ),
+        Tool(
             name="web_search",
             description="Recherche sur internet via l'instance SearXNG locale (EXCEPTION CONSCIENTE roadmap §7)",
             inputSchema={
@@ -262,6 +285,26 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         m.forget(arguments.get("fact_id", 0))
         m.close()
         return [TextContent(type="text", text="C'est oublié.")]
+
+    elif name == "create_calendar_event":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.calendar import create_event
+        return [TextContent(type="text", text=create_event(
+            title=arguments.get("title"), date=arguments.get("date"),
+            time=arguments.get("time")))]
+
+    elif name == "get_next_calendar_event":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.calendar import get_next_event
+        return [TextContent(type="text", text=get_next_event())]
+
+    elif name == "get_todays_events":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.calendar import get_events_today
+        return [TextContent(type="text", text=get_events_today())]
 
     elif name == "web_search":
         query = arguments.get("query", "")

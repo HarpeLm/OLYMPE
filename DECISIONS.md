@@ -1270,3 +1270,37 @@ Critère de sortie P6 : VALIDÉ
 - mémoire persistante entre sessions : les faits survivent au redémarrage
 
 ---
+
+---
+
+## 2026-08-28 — Palier 7 : Calendrier Apple déterministe (création/lecture/dispo)
+
+Décision : intents calendrier exécutés en déterministe via AppleScript
+natif (integrations/calendar.py), dans un calendrier dédié « Olympe »
+créé automatiquement dans l'app Calendrier. Zéro API tierce.
+
+7 handlers : create_event, next_event, events_today, events_date,
+check_availability, search, create_recurring.
+
+Couche de réparation déterministe (prefilter + hook pipeline) :
+- calendar_intent_hint : corrige un intent faux (ex. play_music sur
+  « bloque une réunion… ») sur marqueurs forts uniquement
+- repair_calendar_slots : complète title/date/time manquants (confiance
+  LoRA 0.45 = slots requis manquants, pas une erreur de classification)
+- get_events_today rerouté vers get_events_date si marqueur de date
+
+Leçons :
+- Ne pas baisser le seuil de confiance global : réparer les slots à la
+  place (fiable, viable, calibrage conservé)
+- Titres nettoyés (« à » orphelin, connectifs) pour ne pas polluer le
+  calendrier ; événements parasites supprimables via AppleScript
+- Mémoire : faits injectés avec propriétaire explicite (« l'utilisateur »)
+  sinon le 8B confond avec ses propres préférences
+
+Filet de sécurité : 3 outils MCP calendrier pour le fallback 8B.
+
+Validé : création (« réunion » vendredi 15h), lecture (« déjeuner avec
+Marie »), détection de conflit (« Pas libre : réunion… »), 8B non
+réveillé sur les voies déterministes.
+
+---
