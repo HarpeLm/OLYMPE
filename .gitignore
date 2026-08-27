@@ -34,3 +34,4 @@ data/dispatcher/massive/
 # Logs d'inférence
 data/dispatcher/inference_log.jsonl
 data/notes/*.txt
+data/memory/*.db

@@ -1,0 +1,17 @@
+{"text": "continue la lecture", "expected": "resume_music", "got": "play_music", "action": "fallback", "confidence": 0.45}
+{"text": "chanson suivante", "expected": "next_track", "got": "play_music", "action": "deterministic", "confidence": 0.75}
+{"text": "passe à la piste suivante", "expected": "next_track", "got": "play_music", "action": "deterministic", "confidence": 0.75}
+{"text": "reviens à la chanson d'avant", "expected": "previous_track", "got": "play_music", "action": "deterministic", "confidence": 0.75}
+{"text": "c'est quoi cette chanson", "expected": "get_now_playing", "got": "play_music", "action": "deterministic", "confidence": 0.75}
+{"text": "qu'est-ce qui joue en ce moment", "expected": "get_now_playing", "got": "play_music", "action": "deterministic", "confidence": 0.75}
+{"text": "coupe la musique dans une demi-heure", "expected": "sleep_timer", "got": "general_question", "action": "fallback", "confidence": 0.0}
+{"text": "qu'est-ce qui suit dans mon planning", "expected": "get_next_event", "got": "play_music", "action": "fallback", "confidence": 0.45}
+{"text": "mon prochain rendez-vous", "expected": "get_next_event", "got": "play_music", "action": "fallback", "confidence": 0.45}
+{"text": "mes événements de vendredi", "expected": "get_events_date", "got": "play_music", "action": "fallback", "confidence": 0.45}
+{"text": "qu'est-ce que j'ai demain dans mon agenda", "expected": "get_events_date", "got": "get_events_today", "action": "deterministic", "confidence": 0.75}
+{"text": "bloque 15h30 18h pour du travail", "expected": "create_event", "got": "play_music", "action": "fallback", "confidence": 0.45}
+{"text": "allume le bluetooth", "expected": "toggle_bluetooth", "got": "play_music", "action": "fallback", "confidence": 0.45}
+{"text": "éteins le bluetooth", "expected": "toggle_bluetooth", "got": "play_music", "action": "fallback", "confidence": 0.45}
+{"text": "mets le Mac en veille", "expected": "sleep_mac", "got": "set_wifi", "action": "fallback", "confidence": 0.0}
+{"text": "lance l'application Notes", "expected": "open_app", "got": "play_music", "action": "fallback", "confidence": 0.45}
+{"text": "active airdrop", "expected": "toggle_airdrop", "got": "play_music", "action": "fallback", "confidence": 0.45}

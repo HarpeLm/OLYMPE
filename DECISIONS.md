@@ -1196,3 +1196,41 @@ jeu de test, le post-garde reste pour les cas hors distribution.
 - router/prefilter.py : post-garde par mots-clés (conservé)
 
 ---
+
+---
+
+## 2026-08-27 — Palier 4 : chapitre dispatcheur clos (v8 + alias + post-garde)
+
+Décision : geler le dispatcheur NLU à LoRA v8 + table d'alias + post-garde
+par mots-clés de domaine. 80.9% sur bench élargi (89 phrases). Erreurs
+restantes rétrogradées en fallback sûr. Amélioration continue renvoyée
+vers la boucle des vraies phrases loggées (roadmap §4).
+
+Résultats mesurés (bench/eval_dispatcher_expanded.py) :
+- v5 initial : 60% sur 15 phrases, 0/6 hors taxonomie
+- v6 (109 lignes) : 15/15 cas critiques
+- v8 (échecs réels réinjectés) : 67.4% sur 89 phrases
+- v8 + alias + post-garde : 80.9%, zéro action déterministe hors domaine
+
+Architecture de sécurité en 4 couches :
+- [1] pré-filtre regex (heure/date/minuteur -> fallback, météo -> get_weather)
+- [2] LoRA v8 (intent + slots en une passe)
+- [3] table d'alias (noms inventés -> noms canoniques de la taxonomie)
+- [4] post-garde : intent déterministe sans mot-clé de son domaine ->
+      rétrogradé en fallback
+
+Limites connues (acceptées) :
+- sous-intents musique (next_track, get_now_playing) parfois confondus
+  avec play_music ; en live, handler absent -> renvoi au 8B + outils MCP,
+  invisible pour l'utilisateur final
+- sous-intents calendrier partiellement servis en fallback
+
+Friction documentée (pour ne pas la répéter) :
+- cp -r X dispatcher-best IMBRIQUE X si best existe : deux cycles
+  d'entraînement (v7, v8) ont été évalués sans être chargés. Procédure
+  correcte de swap : rm -rf training/adapters/dispatcher-best avant cp -r.
+
+Prochain cycle : retrain quand inference_log.jsonl aura ~200 phrases
+réelles nouvelles (boucle continue roadmap §4, pas de bench manuel).
+
+---

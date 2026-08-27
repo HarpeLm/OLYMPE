@@ -11,7 +11,7 @@ Usage :
     python router/dispatcher.py "allume le bluetooth"
     python router/dispatcher.py            # mode interactif
 """
-from router.prefilter import prefilter
+from router.prefilter import (prefilter, domain_keywords_present, EXTRA_ALIASES)
 import json
 import sys
 import time
@@ -150,6 +150,8 @@ class Dispatcher:
         intent = pred.get("intent") if json_ok else None
         raw_slots = pred.get("slots", {}) if json_ok else {}
 
+        if intent not in self.schemas and intent in EXTRA_ALIASES:
+            intent = EXTRA_ALIASES[intent]
         via_alias = False
         if intent not in self.schemas and intent in self.aliases:
             intent = self.aliases[intent]
@@ -172,6 +174,11 @@ class Dispatcher:
             # 0.75 au lieu de 0.9 : plus conservateur, laisse passer en fallback
             # les cas ambigus où le modèle est sûr de lui mais se trompe
             confidence = 0.75
+
+        if intent_known and confidence >= self.threshold:
+            if not domain_keywords_present(intent, text):
+                print(f"[GUARD] {intent} : aucun mot-clé du domaine -> rétrogradé")
+                confidence = 0.45
 
         if intent_known and confidence >= self.threshold:
             action, handler = "deterministic", self.schemas[intent]["handler"]

@@ -1,0 +1,102 @@
+{"prompt": "continue la lecture", "completion": "{\"intent\": \"resume_music\", \"slots\": {}}"}
+{"prompt": "c'est quoi l'intelligence artificielle", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "pourquoi le ciel est bleu", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "arrête la musique dans 20 minutes", "completion": "{\"intent\": \"sleep_timer\", \"slots\": {\"duration_minutes\": 20}}"}
+{"prompt": "on est le combien aujourd'hui", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "monte le volume", "completion": "{\"intent\": \"set_volume\", \"slots\": {\"direction\": \"up\"}}"}
+{"prompt": "c'est qui Albert Einstein", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "15 pour cent de 80 ça fait combien", "completion": "{\"intent\": \"fallback\", \"slots\": {}}"}
+{"prompt": "mon prochain rendez-vous", "completion": "{\"intent\": \"get_next_event\", \"slots\": {}}"}
+{"prompt": "qui était Ada Lovelace", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "qui est l'actuel président des États Unis", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "combien d'étapes a gagné Tadej Pogačar sur le Tour de France", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "qui a inventé le téléphone", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "baisse la luminosité", "completion": "{\"intent\": \"set_brightness\", \"slots\": {}}"}
+{"prompt": "il fait quel temps à Paris", "completion": "{\"intent\": \"get_weather\", \"slots\": {\"location\": \"Paris\"}}"}
+{"prompt": "active airdrop", "completion": "{\"intent\": \"toggle_airdrop\", \"slots\": {\"state\": \"on\"}}"}
+{"prompt": "la météo à Lyon", "completion": "{\"intent\": \"get_weather\", \"slots\": {\"location\": \"Lyon\"}}"}
+{"prompt": "joue du jazz", "completion": "{\"intent\": \"play_music\", \"slots\": {\"genre\": \"jazz\"}}"}
+{"prompt": "on est quel jour aujourd'hui", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "qui a peint la Joconde", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "préviens-moi dans vingt minutes", "completion": "{\"intent\": \"fallback\", \"slots\": {}}"}
+{"prompt": "explique-moi comment fonctionne un trou noir", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "combien font 17 fois 23", "completion": "{\"intent\": \"fallback\", \"slots\": {}}"}
+{"prompt": "allume le bluetooth", "completion": "{\"intent\": \"toggle_bluetooth\", \"slots\": {\"state\": \"on\"}}"}
+{"prompt": "reprends la musique", "completion": "{\"intent\": \"resume_music\", \"slots\": {}}"}
+{"prompt": "cherche le fichier budget", "completion": "{\"intent\": \"find_file\", \"slots\": {\"filename\": \"budget\"}}"}
+{"prompt": "ferme Musique", "completion": "{\"intent\": \"close_app\", \"slots\": {\"app_name\": \"Musique\"}}"}
+{"prompt": "reviens à la chanson d'avant", "completion": "{\"intent\": \"previous_track\", \"slots\": {}}"}
+{"prompt": "quel est l'état du wifi", "completion": "{\"intent\": \"get_wifi_status\", \"slots\": {}}"}
+{"prompt": "éteins le bluetooth", "completion": "{\"intent\": \"toggle_bluetooth\", \"slots\": {\"state\": \"off\"}}"}
+{"prompt": "lance un timer de 5 minutes", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "c'est quoi la photosynthèse", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "pause", "completion": "{\"intent\": \"pause_music\", \"slots\": {}}"}
+{"prompt": "cherche facture dans mes documents", "completion": "{\"intent\": \"search_content\", \"slots\": {\"query\": \"facture\"}}"}
+{"prompt": "il fait quel temps à Nice", "completion": "{\"intent\": \"get_weather\", \"slots\": {}}"}
+{"prompt": "ouvre le dossier téléchargements", "completion": "{\"intent\": \"open_folder\", \"slots\": {\"folder_name\": \"téléchargements\"}}"}
+{"prompt": "qui est l'actuel président français", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "crée un rendez-vous dentiste mardi à 15h", "completion": "{\"intent\": \"create_event\", \"slots\": {}}"}
+{"prompt": "qu'est-ce qui suit dans mon planning", "completion": "{\"intent\": \"get_next_event\", \"slots\": {}}"}
+{"prompt": "ajoute déjeuner avec Marie demain à midi", "completion": "{\"intent\": \"create_event\", \"slots\": {\"title\": \"déjeuner avec Marie\", \"date\": \"demain\", \"time\": \"12:00\"}}"}
+{"prompt": "mets la musique en pause", "completion": "{\"intent\": \"pause_music\", \"slots\": {}}"}
+{"prompt": "bloque 15h30-18h pour du travail", "completion": "{\"intent\": \"create_event\", \"slots\": {\"title\": \"travail\", \"time\": \"15:30\", \"end_time\": \"18:00\"}}"}
+{"prompt": "qui est Emmanuel Macron", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "qu'est-ce qui joue en ce moment", "completion": "{\"intent\": \"get_now_playing\", \"slots\": {}}"}
+{"prompt": "c'est quoi la date aujourd'hui", "completion": "{\"intent\": \"fallback\", \"slots\": {}}"}
+{"prompt": "météo Bordeaux aujourd'hui", "completion": "{\"intent\": \"get_weather\", \"slots\": {\"location\": \"Bordeaux\"}}"}
+{"prompt": "liste mes fichiers récents", "completion": "{\"intent\": \"list_recent_files\", \"slots\": {}}"}
+{"prompt": "passe à la piste suivante", "completion": "{\"intent\": \"next_track\", \"slots\": {}}"}
+{"prompt": "qui est le président du Brésil", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "coupe le wifi", "completion": "{\"intent\": \"toggle_wifi\", \"slots\": {\"state\": \"off\"}}"}
+{"prompt": "répète cette piste 3 fois", "completion": "{\"intent\": \"repeat_track\", \"slots\": {\"count\": 3}}"}
+{"prompt": "il est quelle heure", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "pause la musique", "completion": "{\"intent\": \"pause_music\", \"slots\": {}}"}
+{"prompt": "minuteur 5 minutes", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "mes documents récents", "completion": "{\"intent\": \"list_recent_files\", \"slots\": {}}"}
+{"prompt": "quelle heure est-il", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "c'est quoi cette chanson", "completion": "{\"intent\": \"get_now_playing\", \"slots\": {}}"}
+{"prompt": "pourquoi il pleut", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "joue ma playlist détente", "completion": "{\"intent\": \"play_music\", \"slots\": {\"playlist\": \"détente\"}}"}
+{"prompt": "trouve le mot contrat dans mes fichiers", "completion": "{\"intent\": \"search_content\", \"slots\": {}}"}
+{"prompt": "lance l'application Notes", "completion": "{\"intent\": \"open_app\", \"slots\": {}}"}
+{"prompt": "15 % de 80 ça fait combien", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "coupe la musique dans une demi-heure", "completion": "{\"intent\": \"sleep_timer\", \"slots\": {}}"}
+{"prompt": "règle un compte à rebours de 3 minutes", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "j'ai quoi aujourd'hui", "completion": "{\"intent\": \"get_events_today\", \"slots\": {}}"}
+{"prompt": "il est quelle heure maintenant", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "bloque 15h30 18h pour du travail", "completion": "{\"intent\": \"create_event\", \"slots\": {}}"}
+{"prompt": "suis-je libre mardi prochain", "completion": "{\"intent\": \"check_availability\", \"slots\": {\"date\": \"mardi prochain\"}}"}
+{"prompt": "quel est le plus haut sommet du monde", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "quel jour sommes-nous", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "est-ce que je suis dispo vendredi matin", "completion": "{\"intent\": \"check_availability\", \"slots\": {}}"}
+{"prompt": "c'est quoi la date", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "désactive airdrop", "completion": "{\"intent\": \"toggle_airdrop\", \"slots\": {}}"}
+{"prompt": "qu'est-ce que la relativité", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "trouve mon fichier CV", "completion": "{\"intent\": \"find_file\", \"slots\": {}}"}
+{"prompt": "quelle est la date du jour", "completion": "{\"intent\": \"fallback\", \"slots\": {}}"}
+{"prompt": "quelle température à Marseille", "completion": "{\"intent\": \"get_weather\", \"slots\": {\"location\": \"Marseille\"}}"}
+{"prompt": "mets le Mac en veille", "completion": "{\"intent\": \"sleep_mac\", \"slots\": {}}"}
+{"prompt": "qu'est-ce que j'ai demain dans mon agenda", "completion": "{\"intent\": \"get_events_date\", \"slots\": {}}"}
+{"prompt": "augmente la luminosité", "completion": "{\"intent\": \"set_brightness\", \"slots\": {\"direction\": \"up\"}}"}
+{"prompt": "raconte-moi une blague", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "mets de la musique", "completion": "{\"intent\": \"play_music\", \"slots\": {}}"}
+{"prompt": "fais une capture d'écran", "completion": "{\"intent\": \"take_screenshot\", \"slots\": {}}"}
+{"prompt": "retrouve mes réunions avec Paul", "completion": "{\"intent\": \"search_events\", \"slots\": {}}"}
+{"prompt": "météo Paris demain", "completion": "{\"intent\": \"get_weather\", \"slots\": {}}"}
+{"prompt": "lance ma playlist détente", "completion": "{\"intent\": \"play_music\", \"slots\": {\"playlist\": \"détente\"}}"}
+{"prompt": "c'est quoi la capitale de l'Australie", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "quelle date sommes-nous", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "donne-moi une recette de crêpes", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "active le wifi", "completion": "{\"intent\": \"toggle_wifi\", \"slots\": {\"state\": \"on\"}}"}
+{"prompt": "quitte Safari", "completion": "{\"intent\": \"close_app\", \"slots\": {}}"}
+{"prompt": "comment fonctionne un moteur thermique", "completion": "{\"intent\": \"fallback\", \"slots\": {}}"}
+{"prompt": "lance la playlist soir", "completion": "{\"intent\": \"play_music\", \"slots\": {\"playlist\": \"soir\"}}"}
+{"prompt": "rappelle-moi dans 30 minutes", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "comment fonctionne un moteur", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "tu peux me dire l'heure", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "est-ce que je suis connecté au wifi", "completion": "{\"intent\": \"get_wifi_status\", \"slots\": {}}"}
+{"prompt": "ouvre mon pdf de notes", "completion": "{\"intent\": \"open_file\", \"slots\": {\"filename\": \"notes\"}}"}
+{"prompt": "répète cette piste", "completion": "{\"intent\": \"repeat_track\", \"slots\": {}}"}
+{"prompt": "volume à 50", "completion": "{\"intent\": \"set_volume\", \"slots\": {\"level\": 50}}"}
+{"prompt": "comment on dit merci en japonais", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "piste précédente", "completion": "{\"intent\": \"previous_track\", \"slots\": {}}"}

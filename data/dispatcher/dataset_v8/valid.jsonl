@@ -1,0 +1,10 @@
+{"prompt": "on est le combien aujourd'hui", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "qu'est-ce qui suit dans mon planning", "completion": "{\"intent\": \"get_next_event\", \"slots\": {}}"}
+{"prompt": "quel temps fait-il à Paris", "completion": "{\"intent\": \"get_weather\", \"slots\": {\"location\": \"Paris\"}}"}
+{"prompt": "ouvre Safari", "completion": "{\"intent\": \"open_app\", \"slots\": {\"app_name\": \"Safari\"}}"}
+{"prompt": "désactive airdrop", "completion": "{\"intent\": \"toggle_airdrop\", \"slots\": {}}"}
+{"prompt": "explique-moi comment fonctionne un trou noir", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "monte le volume", "completion": "{\"intent\": \"set_volume\", \"slots\": {\"direction\": \"up\"}}"}
+{"prompt": "qui a peint la Joconde", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "pause la musique", "completion": "{\"intent\": \"pause_music\", \"slots\": {}}"}
+{"prompt": "quelle est la date du jour", "completion": "{\"intent\": \"fallback\", \"slots\": {}}"}

@@ -1,0 +1,11 @@
+{"prompt": "chanson suivante", "completion": "{\"intent\": \"next_track\", \"slots\": {}}"}
+{"prompt": "quel temps fait-il à Paris", "completion": "{\"intent\": \"get_weather\", \"slots\": {\"location\": \"Paris\"}}"}
+{"prompt": "mes événements de vendredi", "completion": "{\"intent\": \"get_events_date\", \"slots\": {\"date\": \"vendredi\"}}"}
+{"prompt": "cherche mes événements anniversaire", "completion": "{\"intent\": \"search_events\", \"slots\": {\"query\": \"anniversaire\"}}"}
+{"prompt": "mets un minuteur de 10 minutes", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "baisse le volume", "completion": "{\"intent\": \"set_volume\", \"slots\": {\"direction\": \"down\"}}"}
+{"prompt": "ouvre Safari", "completion": "{\"intent\": \"open_app\", \"slots\": {\"app_name\": \"Safari\"}}"}
+{"prompt": "est-ce qu'il va neiger à Chamonix", "completion": "{\"intent\": \"get_weather\", \"slots\": {}}"}
+{"prompt": "est-ce qu'il pleut à Annecy", "completion": "{\"intent\": \"get_weather\", \"slots\": {\"location\": \"Annecy\"}}"}
+{"prompt": "on est le combien", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "c'est quoi le bitcoin", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}

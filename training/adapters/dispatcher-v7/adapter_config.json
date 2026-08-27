@@ -1,13 +1,13 @@
 {
-    "adapter_path": "training/adapters/dispatcher-v8",
+    "adapter_path": "training/adapters/dispatcher-v7",
     "batch_size": 4,
     "clear_cache_threshold": 0,
     "config": null,
-    "data": "data/dispatcher/dataset_v8",
+    "data": "data/dispatcher/dataset_v7",
     "fine_tune_type": "lora",
     "grad_accumulation_steps": 1,
     "grad_checkpoint": false,
-    "iters": 400,
+    "iters": 350,
     "learning_rate": 0.0001,
     "lora_parameters": {
         "rank": 8,
