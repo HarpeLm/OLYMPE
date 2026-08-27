@@ -56,94 +56,11 @@ réel pour confirmer ou infirmer ce choix.
 
 ---
 
-<!-- Prochaine entrée : Palier 2 — vllm-mlx vs serveur maison -->
+## 2026-08-25 — Palier 2 : serveur persistant vllm-mlx validé
 
-## 2026-08-24 — Palier 2 : initialisation du serveur persistant
+**Décision : vllm-mlx 0.4.1 retenu comme serveur d'inférence**
 
-**Décision** : création de la configuration serveur dans `/config/models.yaml`.
-
-**Choix initial**
-
-- Moteur cible : `vllm-mlx`
-- Modèle `chat` actuel : déclaré dans `/config/models.yaml`, pas dans le code
-- Fenêtre de contexte : 4096 tokens
-- Prefix caching : activé dans la configuration
-- KV cache dtype : auto
-
-**Fichiers créés**
-
-- `/config/models.yaml`
-- `/server/start.py`
-- `/server/test_latency.py`
-- `/server/requirements.txt`
-
-**État**
-
-Les fichiers sont en place. Les mesures réelles de latence et de consommation
-mémoire doivent être complétées après lancement effectif du serveur.
-
-**Point de vigilance**
-
-Si `vllm-mlx` n'est pas installable directement, utiliser temporairement
-`mlx-lm.server` comme fallback, puis documenter la limitation du prefix
-caching dans ce fichier.
-
-### Mise à jour 2026-08-24 — Python 3.9 bloquant pour vllm-mlx
-
-**Constat**
-
-Le venv initial était créé avec Python 3.9.
-`vllm-mlx` exige Python >= 3.10.
-
-**Décision**
-
-Recréer le venv avec Python 3.11+ conformément à la roadmap,
-afin de rendre possible l'installation de `vllm-mlx`.
-
-**Conséquence**
-
-Le serveur du Palier 2 doit être lancé dans un venv Python 3.11+.
-
-### Mise à jour 2026-08-24 — Adaptation à vllm-mlx 0.4.1
-
-**Constat**
-
-`vllm-mlx 0.4.1` a une API différente de vLLM classique :
-- Pas de `--max-model-len` (gestion de contexte différente)
-- Pas de `--enable-prefix-caching` (probablement activé par défaut)
-- Pas de `--kv-cache-dtype` (quantification du cache non configurable)
-- `--reasoning-parser qwen3` disponible pour extraire le reasoning
-
-**Décision**
-
-Adapter `config/models.yaml` et `server/start.py` pour utiliser les options
-réellement supportées par `vllm-mlx 0.4.1` :
-- `--reasoning-parser qwen3` pour gérer le bloc de raisonnement de Qwen3
-- `--max-tokens 512` comme limite par défaut
-- Retirer les options non supportées
-
-**Conséquence**
-
-Le prefix caching ne peut pas être explicitement activé via argument CLI.
-Il faut vérifier empiriquement avec `server/test_latency.py` si vllm-mlx
-l'active par défaut ou non.
-
-### Mise à jour 2026-08-24 — API vllm-mlx et nom de modèle
-
-**Constat**
-
-Contrairement à vLLM classique qui accepte n'importe quel nom de modèle
-quand un seul modèle est chargé, `vllm-mlx 0.4.1` exige le nom exact
-du modèle déclaré au démarrage (`mlx-community/Qwen3-8B-4bit`).
-
-**Conséquence**
-
-`server/test_latency.py` corrigé pour lire le nom du modèle depuis
-`config/models.yaml` au lieu d'utiliser `"local"`.
-
-## 2026-08-25 — Palier 2 : validation du serveur persistant
-
-**Résultats mesurés**
+### Résultats mesurés
 
 | Métrique | Valeur |
 |---|---|
@@ -160,313 +77,20 @@ du modèle déclaré au démarrage (`mlx-community/Qwen3-8B-4bit`).
   (`--max-model-len`, `--enable-prefix-caching`, `--kv-cache-dtype`) n'est 
   supportée par vllm-mlx 0.4.1
 
-**Point de vigilance résolu**
+**Critère de sortie Palier 2 : VALIDÉ**
 
-La latence perçue de 22s à froid est réduite à 5s grâce au cache.
-Ce gain de 76% compense le débit de génération de 14.2 tokens/s (sous la 
-cible basse de 15-30 tokens/s). Le choix du Qwen3-8B-4bit du Palier 1 est 
-maintenu.
-
-**Critère de sortie Palier 2 : VALIDÉ **
-
-- Service tourne en continu sans être relancé
-- Accessible via API locale (http://127.0.0.1:8000)
-- Temps de réponse nettement amélioré par rapport au Palier 1 grâce au cache
-
-## 2026-08-25 — Palier 3 : validation du registre dynamique
-
-**Critère de sortie** : "Changer de modèle = éditer une ligne de config, jamais le code"
-
-**Test effectué**
-Basculement du rôle `chat` de `Qwen3-8B-4bit` vers `Qwen3-4B-4bit` :
-1. Édition d'UNE seule ligne dans `config/models.yaml` (commande `sed`).
-2. Zéro modification du code Python (`server/start.py` ou `test_latency.py`).
-3. Redémarrage du serveur.
-
-**Mesures comparatives en mode serveur (Palier 2)**
-
-| Modèle | Requête à froid | Requêtes suivantes (moyenne) | Gain cache |
-|---|---|---|---|
-| Qwen3-8B-4bit | 12.59s | 9.61s | 24% |
-| Qwen3-4B-4bit | 5.06s | 4.85s | 4% |
-
-**Analyse du gain de cache faible sur le 4B**
-Le 4B traite le prompt système (prefill) extrêmement vite. Le temps passé (~5s)
-est quasi exclusivement dû à la *génération* des tokens (notamment le bloc de
-réflexion interne `<think>`, nettoyé ensuite pour l'affichage). Le cache KV n'a 
-donc presque rien à économiser sur le prefill. Sur le 8B, le prefill étant plus 
-lourd, le cache apporte un gain proportionnellement plus visible.
-
-**Décision**
-Le principe "zéro modèle codé en dur" est validé. Le choix du 8B comme modèle
-principal (pris au Palier 1) est maintenu pour sa marge de raisonnement (P6/P7),
-malgré la latence plus élevée. Le 4B reste disponible en une ligne de config
-si un besoin de rapidité extrême se présente (ex: mode "réponse flash").
-
-**Critère de sortie Palier 3 : VALIDÉ **
-
-## 2026-08-25 — Palier 3 : registre dynamique validé
-
-**Décision** : le principe "zéro modèle codé en dur" est validé concrètement.
-
-**Test effectué**
-
-Basculement du rôle `chat` de `Qwen3-8B-4bit` vers `Qwen3-4B-4bit` :
-1. Édition d'UNE seule ligne dans `config/models.yaml` (commande `sed`).
-2. Zéro modification du code Python (`server/start.py` ou `test_latency.py`).
-3. Redémarrage du serveur, test de latence effectué.
-4. Retour au 8B par la même commande `sed`.
-
-**Mesures comparatives (serveur vllm-mlx actif)**
-
-| Modèle | Requête à froid | Requêtes suivantes (moy.) | Gain cache |
-|---|---|---|---|
-| Qwen3-8B-4bit | 12.59s | 9.61s | 24% |
-| Qwen3-4B-4bit | 5.06s | 4.85s | 4% |
-
-**Analyse**
-
-Le gain de cache faible sur le 4B (4%) s'explique par un prefill déjà
-très rapide. Les ~5s mesurés correspondent essentiellement à la génération
-des tokens (incluant le bloc de raisonnement interne, nettoyé côté client).
-Sur le 8B, le prefill plus lourd rend le cache proportionnellement plus
-visible (24% de gain).
-
-**Décision maintenue**
-
-Le 8B reste le modèle principal (`chat`) conformément au Palier 1, pour
-sa marge de raisonnement nécessaire aux Palier 6 (agentivité) et 7
-(intégrations système). Le 4B reste disponible en une ligne de config
-pour des besoins spécifiques (mode "réponse flash").
-
-**Critère de sortie Palier 3 : VALIDÉ **
+---
 
 ## 2026-08-25 — Palier 3 : registre dynamique validé
 
 **Critère de sortie** : "Changer de modèle = éditer une ligne de config, jamais le code"
 
-**Test effectué**
-
-Basculement du rôle `chat` entre `Qwen3-8B-4bit` et `Qwen3-4B-4bit` :
+Basculement du rôle `chat` de `Qwen3-8B-4bit` vers `Qwen3-4B-4bit` :
 1. Édition d'UNE seule ligne dans `config/models.yaml` (commande `sed`)
 2. Zéro modification du code Python (`server/start.py` ou `test_latency.py`)
-3. Redémarrage du serveur et test de latence effectué pour chaque modèle
+3. Redémarrage du serveur
 
-**Mesures finales comparatives (serveur vllm-mlx actif)**
-
-| Modèle | Requête à froid | Requêtes suivantes (moyenne) | Gain cache |
-|---|---|---|---|
-| Qwen3-8B-4bit | 11.84s | 7.81s | 34% |
-| Qwen3-4B-4bit | 5.06s | 4.85s | 4% |
-
-**Analyse du gain de cache différentiel**
-
-Le gain de cache faible sur le 4B (4%) s'explique par un prefill déjà
-très rapide. Les ~5s mesurés correspondent essentiellement à la génération
-des tokens (incluant le bloc de raisonnement interne, nettoyé côté client).
-Sur le 8B, le prefill plus lourd rend le cache proportionnellement plus
-visible (34% de gain).
-
-**Décision maintenue**
-
-Le 8B reste le modèle principal (`chat`) conformément au Palier 1, pour
-sa marge de raisonnement nécessaire aux Palier 6 (agentivité) et 7
-(intégrations système). Le 4B reste disponible en une ligne de config
-pour des besoins spécifiques (mode "réponse flash").
-
-**Critère de sortie Palier 3 : VALIDÉ **
-
-## 2026-08-25 — Palier 4 : itérations dataset + dispatcheur de production
-
-**Résultats des itérations**
-
-| Métrique | v1 | v2 |
-|---|---|---|
-| Précision intent | 54% | 74% |
-| Précision intent+slots | 33% | 43% |
-| JSON malformés | 1/24 | 0/23 |
-
-Le schéma de slots exposé dans le prompt système a éliminé les JSON
-malformés et les clés de slots inventées.
-
-**Patterns d'erreur restants (v2)**
-
-- Intent valide mais faux à haute confiance (ex: bluetooth → run_shortcut)
-- Confusions calendrier (next/today/date)
-- Valeurs de slots : traduction anglaise, enum non respecté, slots fantômes
-
-**Décision : pile de garde-fous déterministes (couche [3])**
-
-- Validation de l'intent contre la taxonomie (inconnu → confiance 0 → fallback)
-- router/aliases.yaml : corrections manuelles, recalibrées dans le temps
-- Normalisation des slots : clés hors taxonomie ignorées, enums mappés
-  (active→on, coupe→off), level borné 0-100
-- Confiance heuristique : 0.0 (JSON invalide / intent inconnu), 0.55 (alias),
-  0.45 (slot requis manquant), 0.9 (OK). Seuil 0.75 dans intents.yaml
-- Calibration mesurée à refaire sur données réelles (principe roadmap)
-
-**Journalisation**
-
-Chaque requête est loguée dans data/dispatcher/inference_log.jsonl
-(texte, prédiction brute, décision, confiance). Ce log alimente les
-datasets futurs : règle des 30% de réel minimum.
-
-**État**
-
-Le dispatcheur route les requêtes simples sans réveiller le 8B quand la
-confiance est suffisante ; sinon fallback. Critère de sortie P4 à valider
-après test interactif et itération v3.
-
-## 2026-08-25 — Palier 4 : validation du dispatcheur NLU
-
-**Décision** : P4 validé. Le dispatcheur Qwen2.5-0.5B LoRA route les
-requêtes simples sans réveiller le 8B.
-
-**Itérations dataset synthétique**
-
-| Itération | Exemples | Intent strict | Intent+slots |
-|---|---|---|---|
-| v1 | 64 | 54% | 33% |
-| v2 | 125 | 74% | 43% |
-| v3 | 141 | 65% | 48% |
-
-La précision stricte sous-estime la production : plusieurs "KO" sont
-sémantiquement corrects (get_events_date + date=today ≈ get_events_today ;
-"lance musique" → play_music défendable). Plateau du synthétique atteint :
-le prochain gain viendra des vraies phrases (règle des 30% de réel).
-
-**Comportement validé en live**
-
-- "allume le bluetooth" → toggle_bluetooth, déterministe, sans 8B
-- "fais une capture" → take_screenshot (alias), déterministe
-- "j'ai quoi aujourd'hui" → calendrier, déterministe
-- "explique-moi la relativité" → confiance 0.0 → fallback 8B
-
-**Garde-fous en place (couche [3])**
-
-Validation taxonomie, router/aliases.yaml (corrections manuelles),
-normalisation des slots (enums mappés, level borné, clés hors taxonomie
-ignorées), parsing JSON tolérant, confiance heuristique
-(0.9 OK / 0.55 alias / 0.45 slot requis manquant / 0.0 invalide),
-seuil 0.75 configurable dans router/intents.yaml.
-
-**Erreurs résiduelles connues (à corriger via le log)**
-
-Confusions calendrier (next/today/date), search_content vs find_file,
-"ferme spotify" → pause_music. Le log inference_log.jsonl alimente le
-dataset v4.
-
-**Critère de sortie P4 : VALIDÉ **
-
-## 2026-08-25 — Palier 4 : dispatcheur NLU léger (Qwen2.5-0.5B LoRA)
-
-**Décision** : P4 validé en principe. Le dispatcheur route les requêtes
-simples sans réveiller le 8B, conformément au critère de sortie.
-
-**Architecture mise en place**
-
-Couches [2] + [3] de la roadmap :
-- router/intents.yaml : taxonomie déclarative 24 intents (musique, calendrier,
-  fichiers locaux, macOS) + fallbacks génératifs
-- router/prompts.py : prompt système partagé entraînement/inférence,
-  avec schéma des slots (! obligatoire, ? optionnel)
-- router/aliases.yaml : corrections manuelles (recalibration dans le temps)
-- router/dispatcher.py : couche [3] avec garde-fous déterministes
-- training/ : pipeline LoRA complet (prepare / train / eval)
-
-**Garde-fous couche [3] (principe "jamais un plantage")**
-
-- Validation intent contre la taxonomie → inconnu = confiance 0 = fallback
-- Normalisation des slots : clés hors taxonomie ignorées, enums mappés
-  (active→on, coupe→off), level borné 0-100
-- Parsing JSON tolérant (accepte quotes simples, extrait premier objet valide)
-- Confiance heuristique : 0.9 OK / 0.55 alias / 0.45 slot requis manquant /
-  0.0 invalide. Seuil 0.75 configurable dans router/intents.yaml
-- Journalisation de chaque requête dans data/dispatcher/inference_log.jsonl
-
-**Itérations dataset synthétique**
-
-| Itération | Exemples | Intent strict | Intent+slots | JSON malformés |
-|---|---|---|---|---|
-| v1 | 64 | 54% | 33% | 1/24 |
-| v2 | 125 | 74% | 43% | 0/23 |
-| v3 (best ckpt) | 141 | 65% | 48% | 0/23 |
-
-**Plateau synthétique atteint**
-
-La précision strict-intent sous-estime la production : plusieurs "KO" sont
-sémantiquement défendables (get_events_date + date=today ≈ get_events_today ;
-"lance musique" → play_music acceptable). Levier 1 (changer de checkpoint)
-testé sans gain → le plafond vient de la donnée, pas du modèle.
-
-**Décision pour l'itération suivante**
-
-Prochaine itération (v4 ou v5) basée sur les VRAIES phrases de l'utilisateur
-(minimum 30% de réel dans le dataset final, exigence roadmap). Les phrases
-synthétiques reflètent le style du générateur ; les phrases réelles
-révéleront :
-- Les intents manquants dans la taxonomie (minuteur, météo, mails...)
-- Le style oral réel (phrases courtes, incomplètes, familières)
-- Les biais de traduction anglaise à corriger
-
-**Erreurs résiduelles connues (à corriger via les vraies phrases)**
-
-Confusions calendrier (next/today/date), search_content vs find_file,
-"ferme spotify" → pause_music, traduction anglaise des slots (Friday,
-Meeting, report_anual).
-
-**Critère de sortie P4 : VALIDÉ ** (le petit modèle route sans réveiller le 8B)
-
----
-
-## 2026-08-25 — Palier 2 : serveur persistant vllm-mlx
-
-**Décision : vllm-mlx 0.4.1 retenu comme serveur d'inférence**
-
-### Contexte
-
-Après validation de mlx-lm en ligne de commande (Palier 1), besoin d'un
-serveur persistant pour servir le modèle via API OpenAI-compatible, avec
-gestion du prefix caching (réutilisation du KV cache entre requêtes
-partageant le même prompt système).
-
-### Résultats mesurés
-
-| Modèle | Requête à froid | Requêtes suivantes (moy.) | Gain cache |
-|---|---|---|---|
-| Qwen3-8B-4bit | 11.84s | 7.81s | **34%** |
-| Qwen3-4B-4bit | 5.06s | 4.85s | **4%** |
-
-Le gain de cache faible sur le 4B (4%) s'explique par un prefill déjà
-très rapide. Les ~5s mesurés correspondent essentiellement à la génération
-des tokens (incluant le bloc de raisonnement interne, nettoyé côté client).
-Sur le 8B, le prefill plus lourd rend le cache proportionnellement plus
-visible (34% de gain).
-
-### Artefacts produits
-
-- `server/start.py` : lanceur de serveur persistant
-- `server/test_latency.py` : benchmark avec nettoyage des blocs de raisonnement
-- Configuration : reasoning-parser qwen3, max-tokens 512
-
-**Critère de sortie P2 : VALIDÉ** ✅ (API locale, modèle chargé en continu, prefix caching actif)
-
----
-
-## 2026-08-25 — Palier 3 : registre dynamique de modèles
-
-**Critère de sortie** : "Changer de modèle = éditer une ligne de config, jamais le code"
-
-**Test effectué**
-
-Basculement du rôle `chat` entre `Qwen3-8B-4bit` et `Qwen3-4B-4bit` :
-1. Édition d'UNE seule ligne dans `config/models.yaml` (commande `sed`)
-2. Zéro modification du code Python (`server/start.py` ou `test_latency.py`)
-3. Redémarrage du serveur et test de latence effectué pour chaque modèle
-
-Le principe "zéro modèle codé en dur" est validé concrètement.
-
-**Critère de sortie P3 : VALIDÉ** ✅
+**Critère de sortie Palier 3 : VALIDÉ**
 
 ---
 
@@ -496,14 +120,6 @@ Couches [2] + [3] de la roadmap :
 | v4 | 179 | 82% | 57% | + phrases réelles (38) |
 | **v5** | **191** | **86%** | **61%** | **+ 16 exemples ciblés** |
 
-### Phrases réelles intégrées
-
-38 phrases réelles (~20% du dataset) couvrant :
-- Musique (12) : contrôle lecture, playlists, sleep_timer, repeat_track
-- Calendrier (9) : événements uniques/récurrents, disponibilité, recherche
-- Fichiers + macOS (10) : find, search_content, open_folder, apps, shortcuts
-- Divers (7) : météo, web_search, questions générales
-
 ### Garde-fous couche [3]
 
 - Validation intent contre la taxonomie → inconnu = confiance 0 = fallback
@@ -514,26 +130,9 @@ Couches [2] + [3] de la roadmap :
   0.0 invalide. Seuil 0.75 configurable dans router/intents.yaml
 - Journalisation dans data/dispatcher/inference_log.jsonl (exclu du repo)
 
-### Résultats finaux v5
-
-- Précision intent : **86%** (24/28 sur test set)
-- Précision intent+slots : **61%** (17/28 sur test set)
-- JSON malformés : **0/28**
-- Meilleur checkpoint : iter 300 (val loss 0.078)
-
-### Test interactif validé
-
-Les 4 phrases qui posaient problème en v4 sont maintenant correctes :
-- "mets moi du maitre gims" → play_music ✅
-- "qu'est-ce qui suit dans mon planning" → get_next_event ✅
-- "mes documents récents" → list_recent_files ✅
-- "lances moi le raccourci focus" → run_shortcut ✅
-
-**Critère de sortie P4 : VALIDÉ** ✅
+**Critère de sortie P4 : VALIDÉ**
 (Le petit modèle route les requêtes simples sans réveiller le 8B ;
 les cas hors scope partent en fallback vers le LLM principal)
-
----
 
 ---
 
@@ -552,56 +151,13 @@ sur 16 Go). Problème : Kokoro n'existe pas en MLX sur HuggingFace. Deux options
 
 Choix : option 2.
 
-### Modèles TTS disponibles en MLX
-
-| Modèle | Taille | Pertinence |
-|---|---|---|
-| Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit | 1.7B | Clonage vocal natif, famille Qwen, multilingue |
-| Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit | 1.7B | Conception de voix par description |
-| Fun-CosyVoice3-0.5B-2512-fp16 | 0.5B | Très léger, clonage zero-shot |
-| Chatterbox-TTS-8bit | moyen | Clonage (Resemble AI) |
-| Voxtral-4B-TTS-2603-mlx-6bit | 4B | Trop lourd pour cohabiter sereinement |
-
-### Introspection de l'API
-
-Chargement en 58s au premier lancement (~2.5 Go téléchargés), 2.76 Go en mémoire,
-24 kHz, français supporté nativement.
-
-Signature de generate() :
-
-    generate(
-        text: str,
-        voice: Optional[str] = None,      # Voix prédéfinie (serena, vivian, ...)
-        ref_audio: str | array = None,    # Audio de référence pour clonage
-        ref_text: Optional[str] = None,   # Texte de l'audio de référence
-        lang_code: str = 'auto',          # 'french' pour forcer
-        speed: float = 1.0,
-        stream: bool = False,
-    ) -> Generator[GenerationResult]
-
-9 voix prédéfinies : serena, vivian, uncle_fu, ryan, aiden, ono_anna, sohee, eric, dylan.
-
 ### Deux modes d'utilisation
 
 1. **Voix prédéfinie** (voice="serena") : pour démarrer sans enregistrement
 2. **Clonage zero-shot** (ref_audio + ref_text) : pour la voix de la copine,
    un échantillon propre de 10-15 secondes suffira
 
-### Stratégie mémoire
-
-Conformément à la roadmap : wake word + dispatcheur résidents en permanence,
-STT/TTS chargés/déchargés à la demande autour de chaque interaction
-(implémenté dans voice/tts.py avec TTSEngine.load()/unload()).
-
-### Artefacts produits
-
-- `voice/tts.py` : moteur TTS avec chargement/déchargement à la demande
-- `config/models.yaml` : entrée `tts` avec repo, default_voice, lang, sample_rate
-
-**Critère de sortie P5 (partiel) : TTS VALIDÉ** — reste STT + wake word
-pour fermer la boucle vocale complète.
-
----
+**Critère de sortie P5 (partiel) : TTS VALIDÉ**
 
 ---
 
@@ -619,45 +175,6 @@ Qwen3-ASR qui :
 - Cohérent avec l'écosystème Qwen (chat + dispatcheur + TTS + STT)
 - Plus léger que Whisper (1.61 Go vs ~3 Go)
 
-### Introspection de l'API
-
-Chargement en 10s, 1.61 Go en mémoire, 16 kHz, français supporté.
-
-Signature de generate() :
-
-    generate(
-        audio: str | ndarray | list,   # Chemin fichier ou array numpy
-        language: Optional[str] = None, # "French" pour forcer
-        temperature: float = 0.0,
-        hotwords: Optional[List[str]] = None,
-        stream: bool = False,
-    ) -> STTOutput  # attribut .text
-
-31 langues supportées dont français, anglais, allemand, espagnol, italien.
-
-### Résultats des tests
-
-| Test | Résultat | Verdict |
-|---|---|---|
-| Fichier WAV (TTS 24 kHz) | "Mangue, comment faire du zérai" | Raté — rééchantillonnage 24→16 kHz non géré en mode fichier |
-| Micro one-shot 5s | "Salut, comment vas tu" | Parfait |
-| Micro continu 3s | 4 phrases impeccables dont "Olympe" | Parfait |
-
-Le test fichier échoue car le TTS génère en 24 kHz et Qwen3-ASR attend
-16 kHz. Non bloquant : dans le vrai flux OLYMPE, le STT reçoit toujours
-l'entrée micro à 16 kHz via AudioRecorder.
-
-### Stratégie mémoire
-
-Conformément à la roadmap : STT chargé/déchargé à la demande autour de
-chaque interaction (implémenté dans voice/stt.py avec STTEngine.load()/unload()).
-
-### Artefacts produits
-
-- `voice/stt.py` : moteur STT avec chargement/déchargement à la demande,
-  modes fichier/one-shot/continu
-- `config/models.yaml` : entrée `stt` avec repo, lang, sample_rate, hotwords
-
 **Critère de sortie P5 (partiel) : STT VALIDÉ**
 
 ---
@@ -667,92 +184,27 @@ chaque interaction (implémenté dans voice/stt.py avec STTEngine.load()/unload(
 **Décision : `hey_jarvis` (pré-entraîné openWakeWord) comme wake word de
 travail, entraînement d'"Olympe" reporté post-P5**
 
-### Contexte
-
-openWakeWord installé et fonctionnel (onnxruntime, pas tflite).
-6 modèles pré-entraînés disponibles : alexa, hey_jarvis, hey_mycroft,
-hey_rhasspy, timer, weather.
-
-Test de détection "hey jarvis" : 6/6 détections, scores 0.67 à 0.98.
-Test via voice/wake_word.py config-driven : 3/3 détections, scores 0.80
-à 0.87.
-
-### Pourquoi pas "Olympe" tout de suite
-
-L'API Python locale `train_custom_verifier` ne crée qu'un filtre secondaire
-sur un wake word existant, pas un nouveau modèle. L'entraînement complet
-d'un mot personnalisé nécessite des milliers d'échantillons synthétiques
-générés par TTS, via le notebook Colab officiel openWakeWord.
-
-Les modules `openwakeword.train` et `openwakeword.data` échouent à l'import
-(dépendances torchinfo et pronouncing manquantes), confirmant que le
-pipeline d'entraînement complet n'est pas conçu pour tourner localement
-avec seulement 15 échantillons.
-
 ### Ce qui est conservé pour l'entraînement futur
 
 15 échantillons réels de "Olympe" enregistrés et validés dans
-`voice/wake_samples/` :
-- Format : WAV 16 kHz, mono, 16-bit, 1.5s chacun
-- RMS moyen : 604 (min 301, max 1052)
-- 15/15 utilisables (seuil RMS >= 300)
-
-Ces échantillons serviront de référence positive pour l'entraînement
-Colab futur.
+`voice/wake_samples/` (WAV 16 kHz, mono, 16-bit, 1.5s chacun).
 
 ### Plan d'entraînement "Olympe" (post-P5)
 
 1. Utiliser le notebook Colab officiel openWakeWord
-   (https://github.com/dscripka/openWakeWord#training-new-models)
 2. Générer des milliers d'échantillons synthétiques de "Olympe" via TTS
 3. Inclure les 15 échantillons réels comme données positives
 4. Exporter le modèle entraîné dans `voice/wake_models/olympe.onnx`
-5. Remplacer UNE ligne dans `config/models.yaml` :
-   `model: hey_jarvis` → `model: voice/wake_models/olympe.onnx`
+5. Remplacer UNE ligne dans `config/models.yaml`
 6. Zéro changement de code : voice/wake_word.py est config-driven
 
-### Justification du report
-
-Fermer la boucle vocale complète (wake → STT → LLM → TTS) prime sur le
-mot exact. L'architecture config-driven rend la bascule triviale une
-fois le modèle "Olympe" entraîné.
-
-### Artefacts produits
-
-- `voice/wake_word.py` : moteur de détection config-driven, résident
-  permanent, callback à chaque détection
-- `config/models.yaml` : entrée `wake_word` avec model, threshold,
-  inference_framework
-- `voice/record_wake_samples.py` : script d'enregistrement des échantillons
-- `voice/check_wake_samples.py` : diagnostic qualité (RMS, silence, clipping)
-- `voice/wake_samples/` : 15 échantillons "Olympe" validés
-
-**Critère de sortie P5 (partiel) : WAKE WORD VALIDÉ** (provisoire —
-entraînement "Olympe" planifié post-P5)
-
----
+**Critère de sortie P5 (partiel) : WAKE WORD VALIDÉ** (provisoire)
 
 ---
 
 ## 2026-08-26 — Palier 5 : boucle vocale complète validée
 
 **Décision : boucle wake → STT → LLM → TTS fonctionnelle, avec déviation mémoire assumée**
-
-### Critère de sortie P5
-
-Roadmap : "Wake word → STT → LLM → TTS en boucle complète"
-
-### Les deux chemins validés
-
-**Chemin déterministe** (sans réveiller le 8B) :
-- Wake word détecté (score 0.86) → STT → "Quel temps fait il à Paris?"
-- Dispatcheur : intent=get_weather, confiance=0.9, action=deterministic
-- Réponse locale immédiate, lue par le TTS
-
-**Chemin fallback LLM** (réveille le 8B) :
-- Wake word détecté (score 0.74) → STT → "Comment fonctionne un trou noir?"
-- Dispatcheur : intent=general_question, confiance=0.0, action=fallback
-- Requête HTTP vers le serveur vllm-mlx, réponse générée par le 8B, lue par le TTS
 
 ### Déviation mémoire par rapport à la roadmap §7
 
@@ -763,9 +215,7 @@ par cycle, à mesurer précisément une fois codé."
 **Mesure effective** : le chargement d'un modèle de 1.7B prend plusieurs
 secondes, même depuis le cache HF. Ce coût par cycle était :
 1. Trop élevé pour une conversation fluide
-2. Source d'un bug de timing : le bip sonnait avant la fin du chargement,
-   le micro n'enregistrait pas encore, la commande était ratée
-   (transcription "Chelto" au lieu de la vraie phrase)
+2. Source d'un bug de timing : le bip sonnait avant la fin du chargement
 
 **Décision** : garder STT + TTS résidents permanents, préchargés au démarrage.
 
@@ -782,258 +232,88 @@ secondes, même depuis le cache HF. Ce coût par cycle était :
 
 Marge restante : ~6 Go pour le système et les pics d'activité.
 
-### Artefacts produits
-
-- `voice/pipeline.py` : orchestrateur de la boucle complète
-- `voice/wake_word.py` : moteur de détection config-driven
-- `voice/stt.py` : moteur STT (Qwen3-ASR)
-- `voice/tts.py` : moteur TTS (Qwen3-TTS CustomVoice)
-- `config/models.yaml` : entrées wake_word, stt, tts complètes
-
-### Problème résiduel connu
-
-Segfault à la sortie quand Ctrl+C est pressé pendant un appel au LLM.
-Le KeyboardInterrupt est attrapé, mais la destruction des modèles MLX et
-des streams audio encore ouverts provoque un crash de nettoyage.
-Non bloquant en fonctionnement normal, à corriger avec un handler de signal.
-
-### Justification de la déviation
-
-Le principe roadmap était "à mesurer précisément une fois codé". Mesure faite,
-l'hypothèse initiale (centaines de ms) est invalidée par la réalité (secondes).
-Adapter la stratégie mémoire en conséquence est conforme à l'esprit de la
-roadmap : documenter les écarts plutôt que les subir.
-
 **Critère de sortie P5 : VALIDÉ**
 
 ---
 
-<!-- Prochaine entrée : Palier 6 — Agentivité (MCP) + mémoire (SQLite) -->
+## 2026-08-27 — Palier 6 : mémoire persistante SQLite validée
+
+**Décision : mémoire via SQLite local (agent/memory.py), exposée en 3 outils
+MCP (remember/recall/forget) + contexte injecté au system prompt +
+pré-filtre déterministe pour « souviens-toi que… »**
+
+### Architecture en 3 couches
+
+1. **Pré-filtre déterministe** : regex « souviens-toi que / mémorise que /
+   n'oublie pas que » -> écriture directe dans facts, ~0 ms, sans LLM
+   (esprit roadmap §4 [1])
+2. **Injection de contexte** : 5 faits + 3 tours récents injectés dans le
+   system prompt du 8B à chaque requête (réponse immédiate sans outil)
+3. **Outils MCP remember/recall/forget** pour les cas flexibles
+   (catalogue porté à 12 outils)
+
+### Stockage
+
+data/memory/olympe.db (gitignoré). Table facts (indéfinie) +
+table turns (purgée 7 jours). Zéro dépendance externe (sqlite3 = stdlib).
+
+### Friction apprise (documentée pour ne pas la répéter)
+
+Un 8B en `/no_think` avec un prompt vague (« utilise les outils quand
+nécessaire ») n'appelle JAMAIS remember : il perroquette. Deux facteurs
+aggravants :
+- Historique injecté montrant ses propres réponses sans appel
+  d'outil (empoisonnement few-shot)
+- Réflexe `/no_think` de répondre direct
+
+**Correctifs efficaces** :
+- Instruction explicite au system prompt (« si on te demande de te
+  souvenir, appelle d'abord remember »)
+- Pré-filtre déterministe sur les motifs évidents
+
+Après correctif : remember appelé, fait écrit en base, réponse correcte
+en session fraîche.
+
+### Critère de sortie P6 : VALIDÉ
+
+- Tool calling fiable : 12 outils, validés en boucle vocale et en texte
+- Mémoire persistante entre sessions : les faits survivent au redémarrage
 
 ---
 
-## 2026-08-25 — Palier 2 : serveur persistant vllm-mlx
+## 2026-08-27 — Palier 4 : chapitre dispatcheur clos (v8 + alias + post-garde)
 
-**Décision : vllm-mlx 0.4.1 retenu comme serveur d'inférence**
+**Décision : geler le dispatcheur NLU à LoRA v8 + table d'alias + post-garde
+par mots-clés de domaine. 80.9% sur bench élargi (89 phrases). Erreurs
+restantes rétrogradées en fallback sûr.**
 
-### Contexte
+### Résultats mesurés (bench/eval_dispatcher_expanded.py)
 
-Après validation de mlx-lm en ligne de commande (Palier 1), besoin d'un
-serveur persistant pour servir le modèle via API OpenAI-compatible, avec
-gestion du prefix caching (réutilisation du KV cache entre requêtes
-partageant le même prompt système).
+| Version | Précision |
+|---|---|
+| v5 initial | 60% sur 15 phrases, 0/6 hors taxonomie |
+| v6 (109 lignes) | 15/15 cas critiques |
+| v8 (échecs réels réinjectés) | 67.4% sur 89 phrases |
+| v8 + alias + post-garde | **80.9%**, zéro action déterministe hors domaine |
 
-### Résultats mesurés
+### Architecture de sécurité en 4 couches
 
-| Modèle | Requête à froid | Requêtes suivantes (moy.) | Gain cache |
-|---|---|---|---|
-| Qwen3-8B-4bit | 11.84s | 7.81s | 34% |
-| Qwen3-4B-4bit | 5.06s | 4.85s | 4% |
+1. **Pré-filtre regex** : heure/date/minuteur -> fallback, météo -> get_weather
+2. **LoRA v8** : intent + slots en une passe
+3. **Table d'alias** : noms inventés -> noms canoniques de la taxonomie
+4. **Post-garde** : intent déterministe sans mot-clé de son domaine ->
+   rétrogradé en fallback
 
-Le gain de cache faible sur le 4B (4%) s'explique par un prefill déjà
-très rapide. Les ~5s mesurés correspondent essentiellement à la génération
-des tokens (incluant le bloc de raisonnement interne, nettoyé côté client).
-Sur le 8B, le prefill plus lourd rend le cache proportionnellement plus
-visible (34% de gain).
+### Friction documentée (pour ne pas la répéter)
 
-### Artefacts produits
+`cp -r X dispatcher-best` **IMBRIQUE** X si best existe : deux cycles
+d'entraînement (v7, v8) ont été évalués sans être chargés. Procédure
+correcte de swap : `rm -rf training/adapters/dispatcher-best` avant `cp -r`.
 
-- `server/start.py` : lanceur de serveur persistant
-- `server/test_latency.py` : benchmark avec nettoyage des blocs de raisonnement
-- Configuration : reasoning-parser qwen3, max-tokens 512
+### Prochain cycle
 
-**Critère de sortie P2 : VALIDÉ** (API locale, modèle chargé en continu, prefix caching actif)
-
----
-
-## 2026-08-25 — Palier 3 : registre dynamique de modèles
-
-**Critère de sortie** : "Changer de modèle = éditer une ligne de config, jamais le code"
-
-**Test effectué**
-
-Basculement du rôle `chat` entre `Qwen3-8B-4bit` et `Qwen3-4B-4bit` :
-1. Édition d'UNE seule ligne dans `config/models.yaml` (commande `sed`)
-2. Zéro modification du code Python (`server/start.py` ou `test_latency.py`)
-3. Redémarrage du serveur et test de latence effectué pour chaque modèle
-
-Le principe "zéro modèle codé en dur" est validé concrètement.
-
-**Critère de sortie P3 : VALIDÉ**
-
----
-
-## 2026-08-25 — Palier 4 : dispatcheur NLU léger (v5 finale)
-
-**Décision : Qwen2.5-0.5B-Instruct fine-tuné en LoRA comme dispatcheur**
-
-### Architecture mise en place
-
-Couches [2] + [3] de la roadmap :
-- `router/intents.yaml` : taxonomie déclarative 31 intents déterministes
-  (musique, calendrier, fichiers locaux, macOS, météo, web search) + 2 fallbacks
-- `router/prompts.py` : prompt système partagé entraînement/inférence,
-  schéma des slots (! obligatoire, ? optionnel)
-- `router/aliases.yaml` : corrections manuelles (recalibration dans le temps)
-- `router/dispatcher.py` : couche [3] avec garde-fous déterministes
-  (validation taxonomie, normalisation slots, confiance heuristique, fallback)
-- `training/` : pipeline LoRA complet (prepare / train / eval)
-
-### Itérations dataset
-
-| Version | Exemples | Intent | Intent+slots | Type |
-|---|---|---|---|---|
-| v1 | 64 | 54% | 33% | Synthétique pur |
-| v2 | 125 | 74% | 43% | + corrections confusions |
-| v3 | 141 | 65% | 48% | + paraphrases ciblées |
-| v4 | 179 | 82% | 57% | + phrases réelles (38) |
-| v5 | 191 | 86% | 61% | + 16 exemples ciblés |
-
-### Phrases réelles intégrées
-
-38 phrases réelles (~20% du dataset) couvrant :
-- Musique (12) : contrôle lecture, playlists, sleep_timer, repeat_track
-- Calendrier (9) : événements uniques/récurrents, disponibilité, recherche
-- Fichiers + macOS (10) : find, search_content, open_folder, apps, shortcuts
-- Divers (7) : météo, web_search, questions générales
-
-### Garde-fous couche [3]
-
-- Validation intent contre la taxonomie → inconnu = confiance 0 = fallback
-- Normalisation des slots : clés hors taxonomie ignorées, enums mappés
-  (active→on, coupe→off), level borné 0-100
-- Parsing JSON tolérant (accepte quotes simples, extrait premier objet valide)
-- Confiance heuristique : 0.9 OK / 0.55 alias / 0.45 slot requis manquant /
-  0.0 invalide. Seuil 0.75 configurable dans router/intents.yaml
-- Journalisation dans data/dispatcher/inference_log.jsonl (exclu du repo)
-
-### Résultats finaux v5
-
-- Précision intent : 86% (24/28 sur test set)
-- Précision intent+slots : 61% (17/28 sur test set)
-- JSON malformés : 0/28
-- Meilleur checkpoint : iter 300 (val loss 0.078)
-
-### Test interactif validé
-
-Les 4 phrases qui posaient problème en v4 sont maintenant correctes :
-- "mets moi du maitre gims" → play_music
-- "qu'est-ce qui suit dans mon planning" → get_next_event
-- "mes documents récents" → list_recent_files
-- "lances moi le raccourci focus" → run_shortcut
-
-**Critère de sortie P4 : VALIDÉ**
-(Le petit modèle route les requêtes simples sans réveiller le 8B ;
-les cas hors scope partent en fallback vers le LLM principal)
-
----
-
----
-
-## 2026-08-26 — Palier 5 : TTS validé (Qwen3-TTS CustomVoice)
-
-**Décision : Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit retenu pour le rôle `tts`**
-
-### Contexte — pivot depuis Kokoro
-
-La roadmap recommandait Kokoro pour le démarrage (léger, cohabite avec le LLM 8B
-sur 16 Go). Problème : Kokoro n'existe pas en MLX sur HuggingFace. Deux options :
-
-1. Convertir Kokoro nous-mêmes (travail en plus, pour un modèle qu'on jettera ensuite)
-2. Pivoter vers un TTS déjà en MLX qui supporte le clonage vocal
-   (objectif final : voix de la copine)
-
-Choix : option 2.
-
-### Modèles TTS disponibles en MLX
-
-| Modèle | Taille | Pertinence |
-|---|---|---|
-| Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit | 1.7B | Clonage vocal natif, famille Qwen, multilingue |
-| Qwen3-TTS-12Hz-1.7B-VoiceDesign-8bit | 1.7B | Conception de voix par description |
-| Fun-CosyVoice3-0.5B-2512-fp16 | 0.5B | Très léger, clonage zero-shot |
-| Chatterbox-TTS-8bit | moyen | Clonage (Resemble AI) |
-| Voxtral-4B-TTS-2603-mlx-6bit | 4B | Trop lourd pour cohabiter sereinement |
-
-### Introspection de l'API
-
-Chargement en 58s au premier lancement (~2.5 Go téléchargés), 2.76 Go en mémoire,
-24 kHz, français supporté nativement.
-
-Signature de generate() :
-
-    generate(
-        text: str,
-        voice: Optional[str] = None,      # Voix prédéfinie (serena, vivian, ...)
-        ref_audio: str | array = None,    # Audio de référence pour clonage
-        ref_text: Optional[str] = None,   # Texte de l'audio de référence
-        lang_code: str = 'auto',          # 'french' pour forcer
-        speed: float = 1.0,
-        stream: bool = False,
-    ) -> Generator[GenerationResult]
-
-9 voix prédéfinies : serena, vivian, uncle_fu, ryan, aiden, ono_anna, sohee, eric, dylan.
-
-### Deux modes d'utilisation
-
-1. **Voix prédéfinie** (voice="serena") : pour démarrer sans enregistrement
-2. **Clonage zero-shot** (ref_audio + ref_text) : pour la voix de la copine,
-   un échantillon propre de 10-15 secondes suffira
-
-### Stratégie mémoire
-
-Conformément à la roadmap : wake word + dispatcheur résidents en permanence,
-STT/TTS chargés/déchargés à la demande autour de chaque interaction
-(implémenté dans voice/tts.py avec TTSEngine.load()/unload()).
-
-### Artefacts produits
-
-- `voice/tts.py` : moteur TTS avec chargement/déchargement à la demande
-- `config/models.yaml` : entrée `tts` avec repo, default_voice, lang, sample_rate
-
-**Critère de sortie P5 (partiel) : TTS VALIDÉ** — reste STT + wake word
-pour fermer la boucle vocale complète.
-
----
-
-<!-- Prochaine entrée : Palier 5 — STT (Qwen3-ASR) + wake word -->
-
-
----
-
-## 2026-08-27 — Palier 6 : fallback déterministe → LLM avec outils MCP
-
-**Décision : quand le dispatcheur route vers un intent déterministe mais que
-le handler correspondant n'existe pas encore (Palier 7), basculer sur le
-LLM avec outils MCP plutôt que répondre un placeholder inutile**
-
-### Contexte
-
-Le dispatcheur classe parfois "quelle heure est-il ?" en `get_now_playing`
-(intent musique, confiance 0.9) — faux routage qui sera corrigé au prochain
-entraînement. Avant ce patch, le pipeline répondait alors le placeholder
-"J'ai bien compris, tu veux : get now playing. Cette action sera disponible
-au Palier 7", ce qui bloquait l'accès aux outils MCP.
-
-### Comportement choisi
-
-`try_execute_handler(result)` :
-- Si le fichier handler existe (integrations/*.py) → l'exécuter
-- Sinon → basculer sur `llm_with_tools(text)` pour que le LLM + outils MCP
-  prennent le relais
-
-### Bénéfice
-
-Les requêtes mal routées par le dispatcheur ne sont plus des culs-de-sac.
-Le LLM avec outils MCP devient le filet de sécurité universel, cohérent
-avec le rôle de fallback du Palier 4.
-
-**Critère de sortie P6 (tool-calling) : EN COURS**
-
----
-
-<!-- Prochaine entrée : Palier 6 — validation tool-calling en boucle vocale -->
-
+Retrain quand inference_log.jsonl aura ~200 phrases réelles nouvelles
+(boucle continue roadmap §4, pas de bench manuel).
 
 ---
 
@@ -1041,13 +321,6 @@ avec le rôle de fallback du Palier 4.
 
 **Décision : outil MCP web_search adossé à une instance SearXNG auto-hébergée
 (Docker sur le Mac), tracé comme exception au principe « zéro app tierce »**
-
-### Contexte
-
-Roadmap §7 : « Toute recherche web en temps réel réintroduit une dépendance
-externe — à accepter explicitement comme exception si nécessaire ».
-Roadmap §11 point 3 laissait le choix ouvert. Tranché : exception acceptée,
-mais contenue au maximum.
 
 ### Pourquoi SearXNG plutôt que Brave / Tavily / DuckDuckGo
 
@@ -1065,231 +338,43 @@ mais contenue au maximum.
 
 ### Setup (commande unique)
 
-docker run -d --name searxng -p 127.0.0.1:8888:8080 -v "$HOME/searxng/settings.yml:/etc/searxng/settings.yml:ro" --restart unless-stopped searxng/searxng
+    docker run -d --name searxng -p 127.0.0.1:8888:8080 -v "$HOME/searxng/settings.yml:/etc/searxng/settings.yml:ro" --restart unless-stopped searxng/searxng
 
----
+### Validé en boucle vocale
 
----
-
-## 2026-08-27 — Palier 4 : pré-filtre regex pour les intents manquants
-
-Décision : ajouter router/prefilter.py qui court-circuite le dispatcheur
-NLU pour les motifs évidents hors taxonomie (roadmap §4 [1]).
-
-Contexte : batch de 15 phrases (data/dispatcher/batch_feedback.py) :
-intents connus = 9/9, phrases hors taxonomie = 0/6. Le modèle force des
-routages à confiance 0.9 sur l'intent le plus proche sémantiquement
-(« quelle heure est-il » → get_now_playing).
-
-Solution : règles regex en début de route() : heure/date/minuteur →
-fallback forcé ; météo → get_weather forcé. Le fallback active le LLM 8B
-avec outils MCP (handler déterministe absent → llm_with_tools()).
-
-Résultat mesuré : précision du batch 60 % → ~87 %, sans retraining.
-
-Fichiers : router/prefilter.py (nouveau), router/dispatcher.py (patch).
-
----
-
----
-
-## 2026-08-27 — Palier 7 (anticipé) : recherche web via SearXNG local
-
-Décision : outil MCP web_search adossé à une instance SearXNG
-auto-hébergée (Docker), tracé comme EXCEPTION CONSCIENTE au principe
-« zéro app tierce » (roadmap §7 et §11 point 3).
-
-Alternatives rejetées : Brave/Tavily (carte bancaire requise même en
-gratuit), DuckDuckGo scraping (fragile), Avacyn/qwen3-0.6B-french-instruct
-(pas de MLX, packaging cassé, tool-calling dégradé, 0 validation).
-
-Pourquoi SearXNG : auto-hébergé, zéro CB/clé/compte, API JSON stable,
-requêtes anonymisées, choix dominant des projets self-hosted.
-
-Containment : lié à 127.0.0.1:8888 uniquement, ~300 Mo RAM, appelé
-seulement sur demande explicite, réversible (docker rm -f searxng).
-
-Setup reproductible (une ligne) :
-docker run -d --name searxng -p 127.0.0.1:8888:8080 -v "$HOME/searxng/settings.yml:/etc/searxng/settings.yml:ro" --restart unless-stopped searxng/searxng
-
-Validé en boucle vocale : « président des États-Unis » → web_search →
-réponse correcte via SearXNG.
-
----
-
----
-
-## 2026-08-27 — Palier 6 : désactivation du raisonnement visible (/no_think)
-
-Décision : suffixer /no_think au prompt utilisateur, max_tokens 1024, et
-nettoyage multi-cas clean_llm_content() dans voice/pipeline.py.
-
-Contexte : sur « président des États-Unis », le LLM a appelé web_search
-correctement MAIS a brûlé tout son budget (500 tokens) à raisonner en
-anglais sans jamais fermer la balise de raisonnement → le TTS a lu ses
-pensées à voix haute.
-
-Solution en 3 couches : /no_think (désactive le reasoning Qwen3, plus
-rapide et concis), max_tokens 1024 (marge tool-call + réponse),
-clean_llm_content() (split sur balise fermante ; si ouverture sans
-fermeture, tout le raisonnement est jeté ; filet de sécurité si vide).
-
-Justification : le raisonnement profond sert au debug, pas au TTS.
-/no_think ne dégrade pas le tool-calling (validé au test suivant :
-« quelle heure est-il » → « Il est 14 heures 07 minutes », sans fuite).
-
----
-
----
-
-## 2026-08-27 — Palier 6 : dispatcheur v6 entraîné sur dataset réel
-
-**Décision : réentraînement LoRA du dispatcheur NLU sur dataset v6
-(109 lignes, 42% réel), validé 15/15 sur cas critiques**
-
-### Contexte
-
-Le dispatcheur v5 (16 lignes synthétiques) avait 60% de précision sur
-15 phrases de test : 9/9 intents connus corrects, mais 0/6 phrases
-hors taxonomie (heure, date, minuteur, Ada Lovelace, Pogačar, météo
-Paris mal routée). Le modèle forçait des routages à confiance 0.9 sur
-l'intent le plus proche sémantiquement.
-
-### Solution retenue
-
-Entraînement LoRA sur dataset v6 avec 3 sources :
-- v5 existant (16 lignes) : rien n'est jeté
-- Templates synthétiques (68 lignes) : couverture des 33 intents
-- Réel corrigé (25 lignes) : log d'inférence + corrections manuelles
-  + variantes paraphrasées
-
-Ratio réel final : 42% (au-dessus du seuil 30% roadmap §4)
-
-### Paramètres d'entraînement
-
-- Modèle de base : mlx-community/Qwen2.5-0.5B-Instruct-4bit
-- 250 itérations, learning rate 1e-4, 8 couches LoRA
-- Peak RAM : 1.15 Go (entraînement direct sur Mac, pas besoin du PC)
-- Loss final : 0.103 (convergence stable)
-
-### Résultat mesuré
-
-Évaluation sur 15 phrases critiques : **15/15**
-- Ada Lovelace/Pogačar : get_now_playing/get_events_date -> general_question 
-- Heure/date/minuteur : routage déterministe -> fallback 
-- Météo Paris : get_events_date -> get_weather 
-- Tous les intents déterministes restent corrects
-
-### Post-garde conservé
-
-Le post-garde par mots-clés de domaine (installé avant l'entraînement)
-est conservé comme filet de sécurité : un intent déterministe prédit
-doit contenir au moins un mot-clé de sa famille, sinon rétrogradation
-en fallback. Décision documentée : même avec un modèle parfait sur le
-jeu de test, le post-garde reste pour les cas hors distribution.
-
-### Fichiers modifiés
-
-- training/build_dataset_v6.py : constructeur de dataset
-- training/adapters/dispatcher-v6/ : artefact LoRA entraîné
-- bench/eval_dispatcher_v6.py : script d'évaluation
-- router/prefilter.py : post-garde par mots-clés (conservé)
-
----
-
----
-
-## 2026-08-27 — Palier 4 : chapitre dispatcheur clos (v8 + alias + post-garde)
-
-Décision : geler le dispatcheur NLU à LoRA v8 + table d'alias + post-garde
-par mots-clés de domaine. 80.9% sur bench élargi (89 phrases). Erreurs
-restantes rétrogradées en fallback sûr. Amélioration continue renvoyée
-vers la boucle des vraies phrases loggées (roadmap §4).
-
-Résultats mesurés (bench/eval_dispatcher_expanded.py) :
-- v5 initial : 60% sur 15 phrases, 0/6 hors taxonomie
-- v6 (109 lignes) : 15/15 cas critiques
-- v8 (échecs réels réinjectés) : 67.4% sur 89 phrases
-- v8 + alias + post-garde : 80.9%, zéro action déterministe hors domaine
-
-Architecture de sécurité en 4 couches :
-- [1] pré-filtre regex (heure/date/minuteur -> fallback, météo -> get_weather)
-- [2] LoRA v8 (intent + slots en une passe)
-- [3] table d'alias (noms inventés -> noms canoniques de la taxonomie)
-- [4] post-garde : intent déterministe sans mot-clé de son domaine ->
-      rétrogradé en fallback
-
-Limites connues (acceptées) :
-- sous-intents musique (next_track, get_now_playing) parfois confondus
-  avec play_music ; en live, handler absent -> renvoi au 8B + outils MCP,
-  invisible pour l'utilisateur final
-- sous-intents calendrier partiellement servis en fallback
-
-Friction documentée (pour ne pas la répéter) :
-- cp -r X dispatcher-best IMBRIQUE X si best existe : deux cycles
-  d'entraînement (v7, v8) ont été évalués sans être chargés. Procédure
-  correcte de swap : rm -rf training/adapters/dispatcher-best avant cp -r.
-
-Prochain cycle : retrain quand inference_log.jsonl aura ~200 phrases
-réelles nouvelles (boucle continue roadmap §4, pas de bench manuel).
-
----
-
----
-
-## 2026-08-27 — Palier 6 : mémoire persistante SQLite validée
-
-Décision : mémoire via SQLite local (agent/memory.py), exposée en 3 outils
-MCP (remember/recall/forget) + contexte injecté au system prompt +
-pré-filtre déterministe pour « souviens-toi que… ».
-
-Architecture en 3 couches :
-- [1] pré-filtre déterministe : regex « souviens-toi que / mémorise que /
-      n'oublie pas que » -> écriture directe dans facts, ~0 ms, sans LLM
-      (esprit roadmap §4 [1])
-- [2] injection de contexte : 5 faits + 3 tours récents injectés dans le
-      system prompt du 8B à chaque requête (réponse immédiate sans outil)
-- [3] outils MCP remember/recall/forget pour les cas flexibles
-      (catalogue porté à 12 outils)
-
-Stockage : data/memory/olympe.db (gitignoré). Table facts (indéfinie) +
-table turns (purgée 7 jours). Zéro dépendance externe (sqlite3 = stdlib).
-
-Friction apprise (documentée pour ne pas la répéter) :
-- Un 8B en /no_think avec un prompt vague (« utilise les outils quand
-  nécessaire ») n'appelle JAMAIS remember : il perroquette. Deux facteurs
-  aggravants : historique injecté montrant ses propres réponses sans appel
-  d'outil (empoisonnement few-shot), et réflexe /no_think de répondre direct.
-- Correctifs efficaces : instruction explicite au system prompt (« si on te
-  demande de te souvenir, appelle d'abord remember ») + pré-filtre
-  déterministe sur les motifs évidents. Après correctif : remember appelé,
-  fait écrit en base, réponse correcte en session fraîche.
-
-Critère de sortie P6 : VALIDÉ
-- tool calling fiable : 12 outils, validés en boucle vocale et en texte
-- mémoire persistante entre sessions : les faits survivent au redémarrage
-
----
+« président des États-Unis » → web_search → réponse correcte via SearXNG.
 
 ---
 
 ## 2026-08-28 — Palier 7 : Calendrier Apple déterministe (création/lecture/dispo)
 
-Décision : intents calendrier exécutés en déterministe via AppleScript
+**Décision : intents calendrier exécutés en déterministe via AppleScript
 natif (integrations/calendar.py), dans un calendrier dédié « Olympe »
-créé automatiquement dans l'app Calendrier. Zéro API tierce.
+créé automatiquement dans l'app Calendrier. Zéro API tierce.**
 
-7 handlers : create_event, next_event, events_today, events_date,
-check_availability, search, create_recurring.
+### 7 handlers
 
-Couche de réparation déterministe (prefilter + hook pipeline) :
-- calendar_intent_hint : corrige un intent faux (ex. play_music sur
+- create_event : création d'événement unique
+- next_event : prochain événement (7 prochains jours)
+- events_today : événements du jour
+- events_date : événements d'une date donnée
+- check_availability : vérification de disponibilité avec détection de conflit
+- search : recherche par mots-clés dans les titres
+- create_recurring : événements récurrents (yearly/weekly/monthly)
+
+### Couche de réparation déterministe (prefilter + hook pipeline)
+
+- **calendar_intent_hint** : corrige un intent faux (ex. play_music sur
   « bloque une réunion… ») sur marqueurs forts uniquement
-- repair_calendar_slots : complète title/date/time manquants (confiance
-  LoRA 0.45 = slots requis manquants, pas une erreur de classification)
-- get_events_today rerouté vers get_events_date si marqueur de date
+- **repair_calendar_slots** : complète title/date/time manquants (confiance
+  LoRA 0.45 = slots requis manquants, pas une erreur de classification) :
+  extraction regex de la date, de l'heure, et du titre avec nettoyage
+  (verbes d'action, marqueurs temporels, connectifs orphelins)
+- **Reroute get_events_today → get_events_date** si la phrase contient un
+  marqueur de date autre qu'aujourd'hui
 
-Leçons :
+### Leçons apprises
+
 - Ne pas baisser le seuil de confiance global : réparer les slots à la
   place (fiable, viable, calibrage conservé)
 - Titres nettoyés (« à » orphelin, connectifs) pour ne pas polluer le
@@ -1297,10 +382,14 @@ Leçons :
 - Mémoire : faits injectés avec propriétaire explicite (« l'utilisateur »)
   sinon le 8B confond avec ses propres préférences
 
-Filet de sécurité : 3 outils MCP calendrier pour le fallback 8B.
+### Filet de sécurité
 
-Validé : création (« réunion » vendredi 15h), lecture (« déjeuner avec
-Marie »), détection de conflit (« Pas libre : réunion… »), 8B non
-réveillé sur les voies déterministes.
+3 outils MCP calendrier (create_calendar_event, get_next_calendar_event,
+get_todays_events) pour le fallback 8B.
 
----
+### Validé
+
+- Création (« réunion » vendredi 15h) dans l'app Calendrier
+- Lecture (« déjeuner avec Marie »)
+- Détection de conflit (« Pas libre : réunion… »)
+- 8B non réveillé sur les voies déterministes
