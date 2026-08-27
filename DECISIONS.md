@@ -1139,3 +1139,60 @@ Justification : le raisonnement profond sert au debug, pas au TTS.
 « quelle heure est-il » → « Il est 14 heures 07 minutes », sans fuite).
 
 ---
+
+---
+
+## 2026-08-27 — Palier 6 : dispatcheur v6 entraîné sur dataset réel
+
+**Décision : réentraînement LoRA du dispatcheur NLU sur dataset v6
+(109 lignes, 42% réel), validé 15/15 sur cas critiques**
+
+### Contexte
+
+Le dispatcheur v5 (16 lignes synthétiques) avait 60% de précision sur
+15 phrases de test : 9/9 intents connus corrects, mais 0/6 phrases
+hors taxonomie (heure, date, minuteur, Ada Lovelace, Pogačar, météo
+Paris mal routée). Le modèle forçait des routages à confiance 0.9 sur
+l'intent le plus proche sémantiquement.
+
+### Solution retenue
+
+Entraînement LoRA sur dataset v6 avec 3 sources :
+- v5 existant (16 lignes) : rien n'est jeté
+- Templates synthétiques (68 lignes) : couverture des 33 intents
+- Réel corrigé (25 lignes) : log d'inférence + corrections manuelles
+  + variantes paraphrasées
+
+Ratio réel final : 42% (au-dessus du seuil 30% roadmap §4)
+
+### Paramètres d'entraînement
+
+- Modèle de base : mlx-community/Qwen2.5-0.5B-Instruct-4bit
+- 250 itérations, learning rate 1e-4, 8 couches LoRA
+- Peak RAM : 1.15 Go (entraînement direct sur Mac, pas besoin du PC)
+- Loss final : 0.103 (convergence stable)
+
+### Résultat mesuré
+
+Évaluation sur 15 phrases critiques : **15/15**
+- Ada Lovelace/Pogačar : get_now_playing/get_events_date -> general_question 
+- Heure/date/minuteur : routage déterministe -> fallback 
+- Météo Paris : get_events_date -> get_weather 
+- Tous les intents déterministes restent corrects
+
+### Post-garde conservé
+
+Le post-garde par mots-clés de domaine (installé avant l'entraînement)
+est conservé comme filet de sécurité : un intent déterministe prédit
+doit contenir au moins un mot-clé de sa famille, sinon rétrogradation
+en fallback. Décision documentée : même avec un modèle parfait sur le
+jeu de test, le post-garde reste pour les cas hors distribution.
+
+### Fichiers modifiés
+
+- training/build_dataset_v6.py : constructeur de dataset
+- training/adapters/dispatcher-v6/ : artefact LoRA entraîné
+- bench/eval_dispatcher_v6.py : script d'évaluation
+- router/prefilter.py : post-garde par mots-clés (conservé)
+
+---

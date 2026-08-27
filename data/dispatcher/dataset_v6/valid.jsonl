@@ -1,0 +1,8 @@
+{"prompt": "quelle date sommes-nous", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "15 % de 80 ça fait combien", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "augmente la luminosité", "completion": "{\"intent\": \"set_brightness\", \"slots\": {\"direction\": \"up\"}}"}
+{"prompt": "on est quel jour aujourd'hui", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "pourquoi le ciel est bleu", "completion": "{\"intent\": \"general_question\", \"slots\": {}}"}
+{"prompt": "j'ai quoi aujourd'hui", "completion": "{\"intent\": \"get_events_today\", \"slots\": {}}"}
+{"prompt": "piste précédente", "completion": "{\"intent\": \"previous_track\", \"slots\": {}}"}
+{"prompt": "active airdrop", "completion": "{\"intent\": \"toggle_airdrop\", \"slots\": {\"state\": \"on\"}}"}
