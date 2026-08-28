@@ -11,7 +11,13 @@ Usage :
     python router/dispatcher.py "allume le bluetooth"
     python router/dispatcher.py            # mode interactif
 """
-from router.prefilter import (prefilter, domain_keywords_present, EXTRA_ALIASES)
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from router.prefilter import (prefilter, domain_keywords_present, EXTRA_ALIASES,
+                            files_slots, FAMILIES)
 import json
 import sys
 import time
@@ -203,6 +209,10 @@ class Dispatcher:
             entry["action"] = "deterministic"
             entry["confidence"] = 1.0
             entry["handler"] = self.schemas.get(forced_intent, {}).get("handler")
+            if forced_intent in FAMILIES.get("files", set()):
+                merged = dict(entry.get("slots") or {})
+                merged.update(files_slots(text))
+                entry["slots"] = merged
 
         return entry
 

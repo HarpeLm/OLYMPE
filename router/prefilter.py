@@ -11,6 +11,10 @@ RULES = [
     (r"\b(météo|temps fait-il|pleut|neige|température)\b", "get_weather", "weather"),
     # Minuteur/timer → fallback (aucun intent dédié)
     (r"\b(minuteur|timer|compte à rebours|alarme dans)\b", "fallback", "timer"),
+    # Fichiers : motifs évidents forcés en déterministe
+    (r"\b(ouvre|ouvrir)\b.{0,40}\b(dossier|téléchargements|telechargements|bureau|documents|downloads|desktop|images|musique|vidéos)\b", "open_folder", "files_open"),
+    (r"\b(cherche|trouve|recherche)\b.{0,40}\b(fichier|fichiers|pdf|word|excel|image|images|document)\b", "find_file", "files_find"),
+    (r"\bfichiers?\b.{0,40}\b(modifiés|modifiées|recemment|récemment|recents|récents)\b", "list_recent_files", "files_recent"),
 ]
 
 def prefilter(text):
@@ -56,6 +60,30 @@ KEYWORDS = {
     "weather": ["météo", "meteo", "temps", "pleut", "neige", "température",
                 "temperature", "degrés", "degres"],
 }
+
+FOLDER_ALIAS_KEYS = ["téléchargements", "telechargements", "downloads",
+                     "bureau", "desktop", "documents", "images", "photos",
+                     "musique", "vidéos", "videos"]
+
+EXT_WORDS = {"pdf": "pdf", "word": "docx", "excel": "xlsx",
+             "image": "jpg", "images": "jpg", "photo": "jpg",
+             "photos": "jpg", "mp3": "mp3", "vidéo": "mp4", "video": "mp4"}
+
+
+def files_slots(text):
+    """Extraction déterministe des slots files par regex (~0 ms)."""
+    t = text.lower()
+    slots = {}
+    for key in FOLDER_ALIAS_KEYS:
+        if key in t:
+            slots["folder_name"] = key
+            break
+    for word, ext in EXT_WORDS.items():
+        if re.search(r"\b" + word + r"\b", t):
+            slots["extension"] = ext
+            break
+    return slots
+
 
 INTENT_TO_FAMILY = {
     intent: fam for fam, intents in FAMILIES.items() for intent in intents

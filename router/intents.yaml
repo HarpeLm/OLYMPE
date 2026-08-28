@@ -173,7 +173,7 @@ deterministic_intents:
       - name: folder
         type: string
         required: false
-    handler: "integrations/filesystem.py::find"
+    handler: "integrations/finder.py::search_file"
 
   - name: search_content
     description: "Chercher dans le contenu des fichiers"
@@ -187,7 +187,7 @@ deterministic_intents:
       - name: folder
         type: string
         required: false
-    handler: "integrations/filesystem.py::search_content"
+    handler: "integrations/finder.py::search_content"
 
   - name: open_file
     description: "Ouvrir un fichier avec l'application par défaut"
@@ -195,7 +195,7 @@ deterministic_intents:
       - name: filename
         type: string
         required: true
-    handler: "integrations/filesystem.py::open"
+    handler: "integrations/finder.py::open_file"
 
   # Ajouté depuis les vraies phrases (v1.3) : dossier, pas fichier
   - name: open_folder
@@ -204,7 +204,7 @@ deterministic_intents:
       - name: folder_name
         type: string
         required: true
-    handler: "integrations/macos.py::open_folder"
+    handler: "integrations/finder.py::open_folder"
 
   - name: list_recent_files
     description: "Lister les fichiers récents"
@@ -212,7 +212,7 @@ deterministic_intents:
       - name: hours
         type: integer
         required: false
-    handler: "integrations/filesystem.py::recent"
+    handler: "integrations/finder.py::list_recent_files"
 
   # === COMMANDES SYSTÈME MACOS ===
   - name: open_app
