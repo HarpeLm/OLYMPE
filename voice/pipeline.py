@@ -343,6 +343,20 @@ class VoicePipeline:
             if response is not None:
                 self.memory.log_turn(self.session_id, text, response)
                 return response
+            from router.prefilter import prefilter as _pf
+            forced, _ = _pf(text)
+            if forced and forced == intent:
+                msg = ("Désolé, l'action a échoué ou l'application concernée "
+                       "n'est pas disponible.")
+                self.memory.log_turn(self.session_id, text, msg)
+                return msg
+            from router.prefilter import prefilter as _pf
+            forced, _ = _pf(text)
+            if forced and forced == intent:
+                msg = ("Désolé, l'action a échoué ou n'est pas encore "
+                       "disponible.")
+                self.memory.log_turn(self.session_id, text, msg)
+                return msg
             print("[PIPELINE] Handler non implémenté → LLM + outils MCP")
             answer = self.llm_with_tools(text)
             self.memory.log_turn(self.session_id, text, answer)

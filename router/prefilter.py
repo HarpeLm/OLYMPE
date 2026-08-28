@@ -17,6 +17,12 @@ RULES = [
     (r"\bfichiers?\b.{0,40}\b(modifiés|modifiées|recemment|récemment|recents|récents)\b", "list_recent_files", "files_recent"),
     (r"\b(vide|vider)\b.{0,20}\bcorbeille\b", "empty_trash", "files_trash"),
     (r"\b(supprime|supprimer|efface|effacer)\b", "delete_file", "files_delete"),
+    (r"\b(où est|ou est|où se trouve|montre|affiche|repère)\b", "locate_file", "files_locate"),
+    (r"\bdans le finder\b", "locate_file", "files_locate"),
+    (r"\b(ouvre|ouvrir)\b.{0,40}\.[a-z0-9]{2,5}\b", "open_file", "files_openfile"),
+    (r"\b(ouvre|ouvrir|lance|lancer)\b", "open_app", "app_open"),
+    (r"\b(ferme|fermer)\b.{0,40}\.[a-z0-9]{2,5}\b", "close_file", "files_closefile"),
+    (r"\b(ferme|fermer|quitte|quitter)\b", "close_app", "app_close"),
 ]
 
 def prefilter(text):
@@ -92,6 +98,28 @@ def files_slots(text):
         filename = re.sub(r"^fichier\s+", "", filename)
         if filename:
             slots["filename"] = filename
+    if "filename" not in slots:
+        m = re.search(r"\b(?:ouvre|ouvrir|où est|ou est|où se trouve|montre|"
+                      r"affiche|cherche|trouve)\s+"
+                      r"(?:le\s+|la\s+|les\s+|mon\s+|ma\s+|mes\s+|moi\s+)?(.{2,60})$", t)
+        if m:
+            name = m.group(1).strip()
+            name = re.sub(r"^(fichier|dossier)\s+", "", name)
+            name = re.sub(r"\s+dans le finder$", "", name)
+            if name:
+                slots["filename"] = name
+    if "app_name" not in slots:
+        m = re.search(r"\b(?:ouvre|ouvrir|lance|lancer|ferme|fermer|quitte|quitter)\s+"
+                      r"(?:le\s+|la\s+|les\s+|mon\s+|ma\s+|mes\s+|l')?(.{2,40})$", t)
+        if m:
+            slots["app_name"] = m.group(1).strip()
+    if "filename" not in slots:
+        m = re.search(r"\b(?:ferme|fermer)\s+"
+                      r"(?:le\s+|la\s+|les\s+|mon\s+|ma\s+|mes\s+)?(.{2,60})$", t)
+        if m:
+            name = re.sub(r"^(fichier|dossier)\s+", "", m.group(1).strip())
+            if name:
+                slots["filename"] = name
     return slots
 
 

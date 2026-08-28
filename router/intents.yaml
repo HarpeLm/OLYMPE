@@ -228,6 +228,22 @@ deterministic_intents:
     slots: []
     handler: "integrations/finder.py::empty_trash"
 
+  - name: locate_file
+    description: "Révéler un fichier dans le Finder sans l'ouvrir (open -R)"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/finder.py::locate_file"
+
+  - name: close_file
+    description: "Fermer un document ouvert dans son application (boîtes natives préservées)"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/finder.py::close_file"
+
   # === COMMANDES SYSTÈME MACOS ===
   - name: open_app
     description: "Ouvrir une application"

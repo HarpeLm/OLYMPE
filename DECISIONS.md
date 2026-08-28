@@ -541,3 +541,15 @@ Les intents files existent déjà dans la taxonomie v1.4 (find_file, open_folder
 - DESTRUCTIVE : cycle complet question → non (annulation, fichier intact) → oui (corbeille, retour réel du handler)
 
 ---
+
+---
+
+## 2026-08-28 — Leçons AppleScript du contrôle d'apps/documents (P8)
+
+**Décision : trois règles dures pour toute intégration AppleScript**
+
+1. **Jamais résoudre une app non installée** : toute référence `application "X"` sur une app absente ouvre un dialogue modal bloquant (« Où se trouve X ? »). On vérifie d'abord via `ps` que le process tourne (open_app/close_app/close_file).
+2. **Tell littéral, pas par variable** : `tell application appName` (variable) compile sans le dictionnaire de l'app — le `get` fonctionne mais `close` reste muet. Les scripts générés inlinent le nom de l'app (forme identique aux commandes manuelles validées).
+3. **Jamais de fallback 8B sur un intent forcé en échec** : le modèle génératif hallucinait un succès (« Fermé : … ») après un timeout. Garde dans pipeline.py : réponse d'erreur honnête à la place.
+
+Corollaires acceptés : première fermeture d'une app = pop-up d'autorisation macOS (une fois par app, mémorisée) ; fermeture de document = boîtes « enregistrer ? » natives comme protection ; Finder jamais fermé (NEVER_CLOSE).

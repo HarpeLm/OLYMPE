@@ -15,6 +15,7 @@ Handlers déterministes pour le dispatcher :
 Les handlers DESTRUCTIVE (delete_file, empty_trash) arriveront avec
 le branchement de la confirmation vocale dans le pipeline.
 """
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -55,13 +56,24 @@ def _mdfind(query, onlyin=None, timeout=10):
     return [l for l in r.stdout.strip().split("\n") if l]
 
 
+def _resolve_by_name(target):
+    """Résout un nom vers un chemin : exact d'abord, puis wildcard insensible à la casse."""
+    hits = _mdfind(f'kMDItemDisplayName == "{target}"cd')
+    if not hits:
+        hits = _mdfind(f'kMDItemDisplayName == "*{target}*"cd')
+    return Path(hits[0]) if hits else None
+
+
 def search_file(query=None, filename=None, extension=None,
                 folder=None, location=None, **_):
     """Recherche un fichier par nom/extension via Spotlight."""
-    q = query or filename
+    q = query
+    if filename and not re.search(r"\bfichiers?\b", filename):
+        q = f'kMDItemDisplayName == "*{filename}*"cd'
     if extension:
         ext = str(extension).lstrip(".")
-        q = f'kMDItemFSName == "*.{ext}"' + (f' && {q}' if q else "")
+        ext_q = f'kMDItemFSName == "*.{ext}"'
+        q = f"{ext_q} && {q}" if q else ext_q
     if not q:
         return "Tu veux chercher quoi ?"
     if folder or location:
@@ -73,8 +85,12 @@ def search_file(query=None, filename=None, extension=None,
         for root in roots:
             if Path(root).exists():
                 results += _mdfind(q, onlyin=root)
+        if not results:
+            results = [r for r in _mdfind(q)
+                       if not r.startswith(("/System", "/Library", "/private", "/usr"))]
     if not results:
-        return f"Aucun fichier trouvé pour '{q}'."
+        label = filename or query or extension
+        return f"Aucun fichier trouvé pour '{label}'."
     if len(results) == 1:
         return f"Un seul résultat : {results[0]}"
     shown = results[:5]
@@ -154,10 +170,10 @@ def open_file(path=None, filename=None, **_):
         return "Quel fichier ouvrir ?"
     p = Path(target).expanduser()
     if not p.exists():
-        hits = _mdfind(f'kMDItemDisplayName == "{target}"cd')
-        if not hits:
+        hit = _resolve_by_name(target)
+        if hit is None:
             return f"Je ne trouve pas {target}."
-        p = Path(hits[0])
+        p = hit
     ext = p.suffix.lower()
     if ext in DESTRUCTIVE_EXTENSIONS:
         if not (ext == ".app" and "/Applications" in str(p)):
@@ -254,8 +270,7 @@ def delete_file(filename=None, path=None, **_):
                 hit = cand
                 break
         if hit is None:
-            hits = _mdfind(f'kMDItemDisplayName == "{target}"cd')
-            hit = Path(hits[0]) if hits else None
+            hit = _resolve_by_name(target)
         if hit is None:
             return f"Je ne trouve pas {target}."
         p = hit
@@ -281,6 +296,63 @@ def empty_trash(**_):
         return "Corbeille vidée."
     except RuntimeError as e:
         return f"Erreur : {e}"
+
+
+def locate_file(filename=None, **_):
+    """Révèle un fichier dans le Finder (open -R) : fenêtre visible, fichier sélectionné."""
+    if not filename:
+        return "Quel fichier veux-tu voir dans le Finder ?"
+    p = Path(filename).expanduser()
+    if not p.exists():
+        hit = _resolve_by_name(filename)
+        if hit is None:
+            return f"Je ne trouve pas {filename}."
+        p = hit
+    try:
+        subprocess.run(["open", "-R", str(p)], timeout=5)
+        return f"Voilà : {p.name} est montré dans le Finder."
+    except Exception as e:
+        return f"Erreur : {e}"
+
+
+def _running_apps(names):
+    """Filtre les apps réellement en cours via ps (aucune permission requise)."""
+    r = subprocess.run(["ps", "-ax", "-o", "command="],
+                       capture_output=True, text=True)
+    return [n for n in names if f"{n}.app" in r.stdout]
+
+
+def close_file(filename=None, **_):
+    """Ferme un document ouvert dans les apps aperçu/bureautique.
+    Tell LITTÉRAL par app (même forme que le test manuel qui fonctionnait :
+    le tell par variable laissait close muet). Ne cible que les apps en cours
+    (ps) : jamais de dialogue bloquant macOS."""
+    if not filename:
+        return "Quel fichier fermer ?"
+    target = filename
+    if not Path(target).expanduser().exists():
+        hit = _resolve_by_name(target)
+        if hit is not None:
+            target = hit.name
+    apps = ["Preview", "TextEdit", "Pages", "Keynote", "Numbers",
+            "Microsoft Word", "Microsoft Excel", "Microsoft PowerPoint"]
+    for app in _running_apps(apps):
+        script = f"""
+        tell application "{app}"
+            if (count of (every document whose name is "{target}")) > 0 then
+                close (every document whose name is "{target}")
+                return "ok:{app}"
+            end if
+        end tell
+        return "none"
+        """
+        try:
+            out = run_applescript(script, timeout=10)
+        except RuntimeError as e:
+            return f"Je n'ai pas pu fermer {target} : {e}"
+        if out.startswith("ok:"):
+            return f"Fermé : {target} (dans {app})."
+    return f"{target} n'est ouvert dans aucune application que je gère."
 
 
 if __name__ == "__main__":
