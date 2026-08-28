@@ -507,3 +507,37 @@ Ce délai naturel masque partiellement la contention, mais ne l'élimine pas com
 Sur Apple Silicon avec mémoire unifiée, deux process utilisant Metal simultanément peuvent créer une contention GPU imprévisible. Ce n'est pas un bug mais une limitation structurelle de l'architecture.
 
 ---
+
+---
+
+## 2026-08-28 — Palier 8 : architecture commune _core/ et contrôle du Finder
+
+**Décision : toutes les intégrations macOS partagent integrations/_core/ (applescript_runner, risk_levels, permissions, confirmation)**
+
+### Contexte
+
+Le Palier 7 (calendrier) avait son propre runner AppleScript. Avant d'ajouter Finder/Rappels/Notes, extraction du commun pour éviter trois copies divergentes.
+
+### Niveaux de risque appliqués
+
+- SAFE : exécution directe (search_file, list_folder, open_file, list_recent_files)
+- REVERSIBLE : exécution + is_allowed() (create_folder, move_file)
+- DESTRUCTIVE : confirmation vocale obligatoire, jamais d'exécution directe (delete_file vers corbeille, empty_trash)
+
+### Sécurité
+
+- Whitelist config/allowed_paths.yaml : writable / readable / never_touch
+- Résolution des ~ et des chemins avant toute action
+- Jamais de suppression définitive : delete = déplacement vers la corbeille
+- open_file refuse les extensions exécutables (.sh, .command, .pkg...) hors /Applications
+
+### Routage sans retraining
+
+Les intents files existent déjà dans la taxonomie v1.4 (find_file, open_folder, list_recent_files...). Le pré-filtre force les motifs évidents et files_slots() extrait les slots par regex (~0 ms), injectés dans le forcing du dispatcheur. Aucun réentraînement nécessaire.
+
+### Validé
+
+- SAFE/REVERSIBLE : 3 phrases en boucle vocale déterministe (confiance 1.0, zéro fallback 8B)
+- DESTRUCTIVE : cycle complet question → non (annulation, fichier intact) → oui (corbeille, retour réel du handler)
+
+---

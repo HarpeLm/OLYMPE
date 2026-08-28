@@ -13,10 +13,10 @@
 ## En cours
 - [ ] P8 : Contrôle des applications macOS
   - [x] Document d'architecture commune (integrations/_core/)
-  - [ ] Refactor calendar.py vers _core/ (applescript_runner + risk_levels)
-  - [ ] Couche de permissions (whitelist de dossiers)
-  - [ ] Confirmation vocale pour actions destructives
-  - [ ] Finder (search, open, list, create, move, delete)
+  - [x] Refactor calendar.py vers _core/ (applescript_runner + risk_levels)
+  - [x] Couche de permissions (whitelist de dossiers)
+  - [x] Confirmation vocale pour actions destructives
+  - [x] Finder (search, open, list, create, move, delete)
   - [ ] Rappels Apple
   - [ ] Notes Apple
 
