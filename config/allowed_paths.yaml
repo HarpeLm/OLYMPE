@@ -1,0 +1,18 @@
+# Whitelist de ressources autorisées pour les intégrations macOS
+# Toute action d'écriture/suppression passe par is_allowed() avant exécution
+
+writable:
+  - ~/O.L.Y/OLYMPE/data
+  - ~/Desktop
+
+readable:
+  - ~/Documents
+  - ~/Downloads
+  - ~/Desktop
+  - ~/O.L.Y
+
+never_touch:
+  - ~/O.L.Y/OLYMPE/.venv
+  - ~/O.L.Y/OLYMPE/.git
+  - /System
+  - /Library
