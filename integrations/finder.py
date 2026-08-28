@@ -238,6 +238,51 @@ def move_file(source=None, destination=None, **_):
         return f"Erreur de déplacement : {e}"
 
 
+def delete_file(filename=None, path=None, **_):
+    """Déplace un fichier vers la corbeille (jamais de suppression définitive)."""
+    target = path or filename
+    if not target:
+        return "Quel fichier veux-tu supprimer ?"
+    p = Path(target).expanduser()
+    if not p.exists():
+        roots = sorted({str(Path(r).expanduser()) for r in
+                        (_ALLOWED_PATHS["readable"] + _ALLOWED_PATHS["writable"])})
+        hit = None
+        for root in roots:
+            cand = Path(root) / target
+            if cand.exists():
+                hit = cand
+                break
+        if hit is None:
+            hits = _mdfind(f'kMDItemDisplayName == "{target}"cd')
+            hit = Path(hits[0]) if hits else None
+        if hit is None:
+            return f"Je ne trouve pas {target}."
+        p = hit
+    allowed, reason = is_allowed("file", str(p))
+    if not allowed:
+        return f"Je ne peux pas supprimer {p.name} : {reason}"
+    script = f"""
+    tell application "Finder"
+        delete (POSIX file "{str(p.resolve())}" as alias)
+    end tell
+    """
+    try:
+        run_applescript(script)
+        return f"{p.name} est dans la corbeille."
+    except RuntimeError as e:
+        return f"Erreur : {e}"
+
+
+def empty_trash(**_):
+    """Vide la corbeille (DESTRUCTIVE, confirmation vocale obligatoire)."""
+    try:
+        run_applescript('tell application "Finder" to empty trash')
+        return "Corbeille vidée."
+    except RuntimeError as e:
+        return f"Erreur : {e}"
+
+
 if __name__ == "__main__":
     print("=== Test finder.py (lecture seule) ===\n")
     print("open_folder('téléchargements') :", open_folder("téléchargements"))

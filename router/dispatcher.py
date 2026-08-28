@@ -209,7 +209,7 @@ class Dispatcher:
             entry["action"] = "deterministic"
             entry["confidence"] = 1.0
             entry["handler"] = self.schemas.get(forced_intent, {}).get("handler")
-            if forced_intent in FAMILIES.get("files", set()):
+            if forced_intent in (FAMILIES.get("files", set()) | {"delete_file", "empty_trash"}):
                 merged = dict(entry.get("slots") or {})
                 merged.update(files_slots(text))
                 entry["slots"] = merged

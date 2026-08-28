@@ -16,31 +16,35 @@ _pending_confirmation = {
     "active": False,
     "description": "",
     "callback": None,
+    "result": None,
+    "executor": None,
     "timestamp": 0,
     "timeout_seconds": 10,
 }
 
 
-def request_confirmation(description: str, callback: Callable, timeout_seconds: int = 10):
+def request_confirmation(description: str, result: dict = None, executor: Callable = None, 
+                       callback: Callable = None, timeout_seconds: int = 10):
     """
     Demande une confirmation vocale avant d'exécuter une action.
     
     Args:
-        description: description de l'action à confirmer (ex: "supprimer le fichier X")
-        callback: fonction à appeler si confirmé (sans arguments)
+        description: description de l'action à confirmer
+        result: dictionnaire intent/slots/handler à passer à l'executor
+        executor: fonction qui prend result et exécute l'action (ex: try_execute_handler)
+        callback: (legacy) fonction sans arguments à appeler si confirmé
         timeout_seconds: délai max pour répondre (défaut 10s)
     
     Returns:
         str: message vocal à prononcer (la question)
     
     Usage côté pipeline :
-        msg = request_confirmation("supprimer rapport.pdf", lambda: delete_file("rapport.pdf"))
-        # prononcer msg via TTS
-        # attendre réponse vocale
-        # appeler handle_response("oui") ou handle_response("non")
+        msg = request_confirmation("supprimer rapport.pdf", result, self.try_execute_handler)
     """
     _pending_confirmation["active"] = True
     _pending_confirmation["description"] = description
+    _pending_confirmation["result"] = result
+    _pending_confirmation["executor"] = executor
     _pending_confirmation["callback"] = callback
     _pending_confirmation["timestamp"] = time.time()
     _pending_confirmation["timeout_seconds"] = timeout_seconds
@@ -77,10 +81,19 @@ def handle_response(response: str) -> Optional[str]:
     
     # Réponses positives
     if any(word in response_lower for word in ["oui", "ouais", "confirme", "vas-y", "oui vas-y"]):
+        result = _pending_confirmation["result"]
+        executor = _pending_confirmation["executor"]
         callback = _pending_confirmation["callback"]
         _reset_confirmation()
         try:
-            callback()
+            if executor and result:
+                response = executor(result)
+                if response and "Erreur" not in str(response) and "pas" not in str(response):
+                    return response
+                elif response:
+                    return response
+            elif callback:
+                callback()
             return "C'est fait."
         except Exception as e:
             return f"Erreur : {str(e)}"
@@ -98,6 +111,8 @@ def _reset_confirmation():
     """Réinitialise l'état de confirmation."""
     _pending_confirmation["active"] = False
     _pending_confirmation["description"] = ""
+    _pending_confirmation["result"] = None
+    _pending_confirmation["executor"] = None
     _pending_confirmation["callback"] = None
     _pending_confirmation["timestamp"] = 0
 

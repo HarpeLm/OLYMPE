@@ -15,6 +15,8 @@ RULES = [
     (r"\b(ouvre|ouvrir)\b.{0,40}\b(dossier|téléchargements|telechargements|bureau|documents|downloads|desktop|images|musique|vidéos)\b", "open_folder", "files_open"),
     (r"\b(cherche|trouve|recherche)\b.{0,40}\b(fichier|fichiers|pdf|word|excel|image|images|document)\b", "find_file", "files_find"),
     (r"\bfichiers?\b.{0,40}\b(modifiés|modifiées|recemment|récemment|recents|récents)\b", "list_recent_files", "files_recent"),
+    (r"\b(vide|vider)\b.{0,20}\bcorbeille\b", "empty_trash", "files_trash"),
+    (r"\b(supprime|supprimer|efface|effacer)\b", "delete_file", "files_delete"),
 ]
 
 def prefilter(text):
@@ -82,6 +84,14 @@ def files_slots(text):
         if re.search(r"\b" + word + r"\b", t):
             slots["extension"] = ext
             break
+    m = re.search(r"\b(?:supprime|supprimer|efface|effacer)\s+"
+                  r"(?:le\s+fichier\s+|la\s+fichier\s+|le\s+|la\s+|les\s+|mon\s+|mes\s+)?(.{2,60})$", t)
+    if m:
+        filename = m.group(1).strip()
+        # Nettoyer "fichier" résiduel au début
+        filename = re.sub(r"^fichier\s+", "", filename)
+        if filename:
+            slots["filename"] = filename
     return slots
 
 

@@ -214,6 +214,20 @@ deterministic_intents:
         required: false
     handler: "integrations/finder.py::list_recent_files"
 
+  # Palier 8 Étape 5 — DESTRUCTIVE, confirmation vocale obligatoire
+  - name: delete_file
+    description: "Déplacer un fichier vers la corbeille (jamais de suppression définitive)"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/finder.py::delete_file"
+
+  - name: empty_trash
+    description: "Vider la corbeille (confirmation vocale obligatoire)"
+    slots: []
+    handler: "integrations/finder.py::empty_trash"
+
   # === COMMANDES SYSTÈME MACOS ===
   - name: open_app
     description: "Ouvrir une application"

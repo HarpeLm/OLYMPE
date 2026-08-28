@@ -283,6 +283,13 @@ class VoicePipeline:
 
     def handle_command(self, text):
         """Route : déterministe (dispatcheur) ou LLM + outils."""
+        from integrations._core.confirmation import (
+            is_confirmation_pending, handle_response)
+        if is_confirmation_pending():
+            answer = handle_response(text)
+            if answer is not None:
+                self.memory.log_turn(self.session_id, text, answer)
+                return answer
         result = self.dispatcher.route(text)
         intent = result.get("intent")
         action = result.get("action")
@@ -320,6 +327,16 @@ class VoicePipeline:
                     action = "deterministic"
                     intent = target
                     print(f"[REPAIR] intent {target} + slots : {repaired}")
+
+        if action == "deterministic" and intent in ("delete_file", "empty_trash"):
+            from integrations._core.confirmation import request_confirmation
+            slots = result.get("slots") or {}
+            desc = (f"supprimer {slots.get('filename') or 'ce fichier'}"
+                    if intent == "delete_file" else "vider la corbeille")
+            question = request_confirmation(
+                desc, dict(result), self.try_execute_handler)
+            self.memory.log_turn(self.session_id, text, question)
+            return question
 
         if action == "deterministic":
             response = self.try_execute_handler(result)
