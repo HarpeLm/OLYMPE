@@ -15,8 +15,8 @@ Test silencieux :
     python integrations/calendar.py --create   crée un événement de test
 """
 import re
-import subprocess
 from datetime import datetime, timedelta
+from integrations._core.applescript_runner import run_applescript
 
 CALENDAR_NAME = "Olympe"
 
@@ -24,12 +24,7 @@ DAYS_FR = {"lundi": 0, "mardi": 1, "mercredi": 2, "jeudi": 3,
            "vendredi": 4, "samedi": 5, "dimanche": 6}
 
 
-def _run_applescript(script, timeout=10):
-    r = subprocess.run(["osascript", "-e", script],
-                       capture_output=True, text=True, timeout=timeout)
-    if r.returncode != 0:
-        raise RuntimeError(f"AppleScript: {r.stderr.strip()}")
-    return r.stdout.strip()
+
 
 
 def ensure_calendar():
@@ -40,7 +35,7 @@ def ensure_calendar():
         end if
     end tell
     '''
-    _run_applescript(script)
+    run_applescript(script)
 
 
 def parse_date_fr(text):
@@ -106,7 +101,7 @@ def get_next_event():
     end if
     return bestSummary & ", " & (best as string) & " (" & bestCal & ")"
     '''
-    return _run_applescript(script)
+    return run_applescript(script)
 
 
 def get_events_today():
@@ -131,7 +126,7 @@ def get_events_today():
     set AppleScript's text item delimiters to linefeed
     return eventList as string
     '''
-    return _run_applescript(script)
+    return run_applescript(script)
 
 
 def create_event(title=None, date=None, time=None, **_):
@@ -151,7 +146,7 @@ def create_event(title=None, date=None, time=None, **_):
         make new event at end of events of calendar "{CALENDAR_NAME}" with properties {{summary:"{title}", start date:d, end date:d + (30 * minutes)}}
     end tell
     '''
-    _run_applescript(script)
+    run_applescript(script)
     return f"C'est noté : {title}, le {d.strftime('%d/%m')} à {h:02d}h{mi:02d}."
 
 
@@ -201,7 +196,7 @@ def events_date(date=None, **_):
         return eventList as string
     end tell
     '''
-    return _run_applescript(script)
+    return run_applescript(script)
 
 
 def check_availability(date=None, time=None, duration_minutes=None, **_):
@@ -230,7 +225,7 @@ def check_availability(date=None, time=None, duration_minutes=None, **_):
     end tell
     return "Oui, tu es libre à ce moment-là."
     '''
-    return _run_applescript(script)
+    return run_applescript(script)
 
 
 def search(query=None, **_):
@@ -255,7 +250,7 @@ def search(query=None, **_):
     set AppleScript's text item delimiters to linefeed
     return eventList as string
     '''
-    return _run_applescript(script)
+    return run_applescript(script)
 
 
 def create_recurring(title=None, date=None, recurrence=None, **_):
@@ -279,5 +274,5 @@ def create_recurring(title=None, date=None, recurrence=None, **_):
         end try
     end tell
     '''
-    _run_applescript(script)
+    run_applescript(script)
     return f"C'est noté : {title}, récurrent ({recurrence or 'yearly'})."
