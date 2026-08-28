@@ -328,11 +328,19 @@ class VoicePipeline:
                     intent = target
                     print(f"[REPAIR] intent {target} + slots : {repaired}")
 
-        if action == "deterministic" and intent in ("delete_file", "empty_trash"):
+        if action == "deterministic" and intent in (
+                "delete_file", "empty_trash", "delete_folder", "overwrite_file"):
             from integrations._core.confirmation import request_confirmation
             slots = result.get("slots") or {}
-            desc = (f"supprimer {slots.get('filename') or 'ce fichier'}"
-                    if intent == "delete_file" else "vider la corbeille")
+            if intent == "delete_file":
+                desc = f"supprimer {slots.get('filename') or 'ce fichier'}"
+            elif intent == "delete_folder":
+                desc = f"supprimer le dossier {slots.get('filename') or 'ce dossier'}"
+            elif intent == "overwrite_file":
+                desc = (f"remplacer {slots.get('destination') or 'ce fichier'} "
+                        f"par {slots.get('source') or 'un autre'}")
+            else:
+                desc = "vider la corbeille"
             question = request_confirmation(
                 desc, dict(result), self.try_execute_handler)
             self.memory.log_turn(self.session_id, text, question)

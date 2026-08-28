@@ -15,7 +15,10 @@ Handlers déterministes pour le dispatcher :
 Les handlers DESTRUCTIVE (delete_file, empty_trash) arriveront avec
 le branchement de la confirmation vocale dans le pipeline.
 """
+import os
+import plistlib
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -23,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from integrations._core.applescript_runner import run_applescript
-from integrations._core.permissions import is_allowed, _ALLOWED_PATHS
+from integrations._core.permissions import is_allowed, is_readable, _ALLOWED_PATHS
 
 
 SAFE_EXTENSIONS = {".pdf", ".txt", ".md", ".jpg", ".jpeg", ".png",
@@ -353,6 +356,266 @@ def close_file(filename=None, **_):
         if out.startswith("ok:"):
             return f"Fermé : {target} (dans {app})."
     return f"{target} n'est ouvert dans aucune application que je gère."
+
+
+def _find(name):
+    """Résout un nom vers un Path existant : chemin direct, puis racines
+    autorisées (immédiat, sans index), puis Spotlight en dernier recours."""
+    p = Path(name).expanduser()
+    if p.exists():
+        return p
+    roots = sorted({str(Path(r).expanduser()) for r in
+                    (_ALLOWED_PATHS["readable"] + _ALLOWED_PATHS["writable"])})
+    for root in roots:
+        cand = Path(root) / name
+        if cand.exists():
+            return cand
+    return _resolve_by_name(name)
+
+
+def _dst_from(destination):
+    key = str(destination).lower().strip()
+    return Path(FOLDER_ALIASES.get(key, destination)).expanduser()
+
+
+def check_file_exists(filename=None, **_):
+    """SAFE : dit si un fichier existe et où."""
+    if not filename:
+        return "Quel fichier ?"
+    hit = _find(filename)
+    if hit is not None:
+        return f"Oui, {hit.name} existe : {hit}"
+    return f"Non, je ne trouve pas {filename}."
+
+
+def get_file_info(filename=None, **_):
+    """SAFE : taille, type, date, chemin."""
+    from datetime import datetime
+    if not filename:
+        return "Quel fichier ?"
+    p = _find(filename)
+    if p is None:
+        return f"Je ne trouve pas {filename}."
+    st = p.stat()
+    size, unit = float(st.st_size), "o"
+    for u in ("Ko", "Mo", "Go"):
+        if size >= 1024:
+            size /= 1024
+            unit = u
+    mod = datetime.fromtimestamp(st.st_mtime).strftime("%d/%m/%Y à %H:%M")
+    kind = "dossier" if p.is_dir() else f"fichier {p.suffix or ''}".strip()
+    return f"{p.name} : {kind}, {size:.1f} {unit}, modifié le {mod}, chemin {p}"
+
+
+def rename_file(filename=None, new_name=None, **_):
+    """REVERSIBLE : renomme dans le même dossier."""
+    if not filename or not new_name:
+        return "Renommer quoi, en quoi ?"
+    p = _find(filename)
+    if p is None:
+        return f"Je ne trouve pas {filename}."
+    ok, reason = is_allowed("file", str(p))
+    if not ok:
+        return f"Je ne peux pas renommer {p.name} : {reason}"
+    target = p.with_name(new_name)
+    if target.exists():
+        return f"{new_name} existe déjà."
+    ok2, r2 = is_allowed("file", str(target))
+    if not ok2:
+        return f"Je ne peux pas renommer vers {new_name} : {r2}"
+    p.rename(target)
+    return f"Renommé : {p.name} en {target.name}"
+
+
+def copy_file(filename=None, destination=None, **_):
+    """REVERSIBLE : copie vers un dossier autorisé."""
+    if not filename or not destination:
+        return "Copier quoi, et où ?"
+    src = _find(filename)
+    if src is None:
+        return f"Je ne trouve pas {filename}."
+    dst = _dst_from(destination)
+    if dst.is_dir():
+        dst = dst / src.name
+    ok1, r1 = is_readable(str(src))
+    if not ok1:
+        return f"Je ne peux pas lire {src.name} : {r1}"
+    ok2, r2 = is_allowed("file", str(dst))
+    if not ok2:
+        return f"Je ne peux pas copier vers {destination} : {r2}"
+    if dst.exists():
+        return f"{dst.name} existe déjà (dis 'remplace' pour écraser)."
+    shutil.copy2(src, dst)
+    return f"Copié : {src.name} vers {dst}"
+
+
+def duplicate_file(filename=None, **_):
+    """REVERSIBLE : crée une copie à côté de l'original."""
+    if not filename:
+        return "Dupliquer quoi ?"
+    src = _find(filename)
+    if src is None:
+        return f"Je ne trouve pas {filename}."
+    ok, reason = is_allowed("file", str(src))
+    if not ok:
+        return f"Je ne peux pas dupliquer {src.name} : {reason}"
+    dst = src.with_name(f"{src.stem} copie{src.suffix}")
+    n = 1
+    while dst.exists():
+        n += 1
+        dst = src.with_name(f"{src.stem} copie {n}{src.suffix}")
+    shutil.copy2(src, dst)
+    return f"Dupliqué : {dst.name}"
+
+
+def compress_file(filename=None, destination=None, **_):
+    """REVERSIBLE : zippe via ditto (natif macOS)."""
+    if not filename:
+        return "Compresser quoi ?"
+    src = _find(filename)
+    if src is None:
+        return f"Je ne trouve pas {filename}."
+    ok, reason = is_readable(str(src))
+    if not ok:
+        return f"Je ne peux pas lire {src.name} : {reason}"
+    dst = (_dst_from(destination) if destination
+           else src.with_name(src.name + ".zip"))
+    if dst.exists() and dst.is_dir():
+        dst = dst / (src.name + ".zip")
+    ok2, r2 = is_allowed("file", str(dst))
+    if not ok2:
+        return f"Je ne peux pas écrire ici : {r2}"
+    r = subprocess.run(["ditto", "-c", "-k", "--sequesterRsrc",
+                        str(src), str(dst)],
+                       capture_output=True, text=True, timeout=60)
+    if r.returncode == 0:
+        return f"Compressé : {dst.name}"
+    return f"Erreur de compression : {r.stderr.strip()}"
+
+
+def extract_archive(filename=None, destination=None, **_):
+    """REVERSIBLE : dézippe via ditto/tar (bsdtar natif bloque les chemins absolus)."""
+    if not filename:
+        return "Décompresser quoi ?"
+    src = _find(filename)
+    if src is None:
+        return f"Je ne trouve pas {filename}."
+    ok, reason = is_readable(str(src))
+    if not ok:
+        return f"Je ne peux pas lire {src.name} : {reason}"
+    dst = (_dst_from(destination) if destination
+           else src.parent / src.stem)
+    ok2, r2 = is_allowed("folder", str(dst))
+    if not ok2:
+        return f"Je ne peux pas extraire ici : {r2}"
+    dst.mkdir(parents=True, exist_ok=True)
+    if src.suffix.lower() == ".zip":
+        cmd = ["ditto", "-x", "-k", str(src), str(dst)]
+    elif src.suffix.lower() in (".tar", ".tgz", ".gz", ".bz2", ".xz"):
+        cmd = ["tar", "-xf", str(src), "-C", str(dst)]
+    else:
+        return f"Format non géré : {src.suffix}"
+    r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+    if r.returncode == 0:
+        return f"Extrait dans : {dst}"
+    return f"Erreur d'extraction : {r.stderr.strip()}"
+
+
+TAG_XATTR = "com.apple.metadata:_kMDItemUserTags"
+
+
+def _read_tags(path):
+    """Lit les tags Finder via l'outil natif xattr (plist binaire en hex)."""
+    r = subprocess.run(["xattr", "-p", "-x", TAG_XATTR, str(path)],
+                       capture_output=True, text=True)
+    if r.returncode != 0 or not r.stdout.strip():
+        return []
+    try:
+        tags = plistlib.loads(bytes.fromhex(r.stdout.strip().replace(" ", "")))
+        return [str(t).split("\n")[0] for t in tags]
+    except Exception:
+        return []
+
+
+def _write_tags(path, tags):
+    hexdata = plistlib.dumps(tags, fmt=plistlib.FMT_BINARY).hex()
+    subprocess.run(["xattr", "-w", "-x", TAG_XATTR, hexdata, str(path)],
+                   capture_output=True, text=True, check=True)
+
+
+def add_tag(filename=None, tag=None, **_):
+    """REVERSIBLE : tag Finder natif via xattr (visible dans Spotlight)."""
+    if not filename or not tag:
+        return "Quel fichier, et quel tag ?"
+    p = _find(filename)
+    if p is None:
+        return f"Je ne trouve pas {filename}."
+    ok, reason = is_allowed("file", str(p))
+    if not ok:
+        return f"Je ne peux pas taguer {p.name} : {reason}"
+    tags = _read_tags(p)
+    if tag in tags:
+        return f"{p.name} a déjà le tag {tag}."
+    tags.append(tag)
+    _write_tags(p, tags)
+    return f"Tag {tag} ajouté à {p.name}."
+
+
+def set_favorite(filename=None, **_):
+    """REVERSIBLE : favori = tag 'Favoris' (sidebar Finder non scriptable
+    nativement — décision documentée, option A)."""
+    if not filename:
+        return "Quel fichier mettre en favori ?"
+    return add_tag(filename=filename, tag="Favoris")
+
+
+def delete_folder(filename=None, folder=None, **_):
+    """DESTRUCTIVE : dossier vers la corbeille, jamais définitif."""
+    target = folder or filename
+    if not target:
+        return "Quel dossier supprimer ?"
+    p = _find(target)
+    if p is None:
+        return f"Je ne trouve pas {target}."
+    if not p.is_dir():
+        return f"{target} n'est pas un dossier."
+    ok, reason = is_allowed("folder", str(p))
+    if not ok:
+        return f"Je ne peux pas supprimer {p.name} : {reason}"
+    script = f"""
+    ObjC.import('Foundation');
+    var fm = $.NSFileManager.defaultManager;
+    var url = $.NSURL.fileURLWithPath('{str(p.resolve())}');
+    var err = Ref();
+    var ok = fm.trashItemAtURLResultingItemURLError(url, null, err);
+    ok ? 'ok' : ('err:' + err[0].localizedDescription);
+    """
+    r = subprocess.run(["osascript", "-l", "JavaScript", "-e", script],
+                       capture_output=True, text=True, timeout=20)
+    out = r.stdout.strip()
+    if out == "ok":
+        return f"{p.name} est dans la corbeille."
+    return f"Erreur corbeille : {out or r.stderr.strip()}"
+
+
+def overwrite_file(source=None, destination=None, **_):
+    """DESTRUCTIVE : remplace un fichier par un autre (confirmation vocale)."""
+    if not source or not destination:
+        return "Remplacer quoi, par quoi ?"
+    src = _find(source)
+    if src is None:
+        return f"Je ne trouve pas {source}."
+    dst = _find(destination)
+    if dst is None:
+        return f"Je ne trouve pas {destination} (rien à écraser)."
+    ok1, r1 = is_readable(str(src))
+    if not ok1:
+        return f"Je ne peux pas lire {src.name} : {r1}"
+    ok2, r2 = is_allowed("file", str(dst))
+    if not ok2:
+        return f"Je ne peux pas écrire ici : {r2}"
+    shutil.copy2(src, dst)
+    return f"{dst.name} a été remplacé par {src.name}."
 
 
 if __name__ == "__main__":

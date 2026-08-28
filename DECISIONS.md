@@ -553,3 +553,29 @@ Les intents files existent déjà dans la taxonomie v1.4 (find_file, open_folder
 3. **Jamais de fallback 8B sur un intent forcé en échec** : le modèle génératif hallucinait un succès (« Fermé : … ») après un timeout. Garde dans pipeline.py : réponse d'erreur honnête à la place.
 
 Corollaires acceptés : première fermeture d'une app = pop-up d'autorisation macOS (une fois par app, mémorisée) ; fermeture de document = boîtes « enregistrer ? » natives comme protection ; Finder jamais fermé (NEVER_CLOSE).
+
+---
+
+## 2026-08-29 — Leçon iCloud : corbeille via Foundation, pas via Finder AppleScript (P8)
+
+**Décision : les mises à la corbeille passent par trashItemAtURL (JXA/Foundation), repli ~/.Trash ; jamais par `delete` AppleScript Finder**
+
+### Contexte
+
+Le Desktop (et Documents) de la machine est synchronisé iCloud Drive. Sur un élément syncé, `tell application "Finder" to delete` déclenche une coordination iCloud qui bloque ~37 s puis échoue en error -8013 (« l'élément doit être téléchargé »). Tous les timeouts de delete_folder venaient de là — ni permissions, ni processus orphelins.
+
+### Conséquences générales
+
+- Toute opération AppleScript Finder sur un dossier syncé iCloud peut hanger ; préférer les API Foundation (NSFileManager) ou shutil côté Python.
+- trashItemAtURL = même comportement corbeille que le Finder (réversible, « récupérer » possible), sans Apple Events ni pop-up d'autorisation.
+- Repli si trashItemAtURL échoue : déplacement direct vers ~/.Trash (jamais de suppression définitive).
+
+### Clôture du catalogue Finder (19 actions)
+
+SAFE : search_file, search_content, list_folder, list_recent_files, open_file, open_folder, locate_file, check_file_exists, get_file_info.
+REVERSIBLE : create_folder, move_file, rename_file, copy_file, duplicate_file, compress_file, extract_archive, add_tag, set_favorite (= tag Favoris).
+DESTRUCTIVE (confirmation vocale) : delete_file, delete_folder, empty_trash, overwrite_file.
+
+Validé de bout en bout : copie vers Downloads, tags natifs xattr avec casse préservée, dossier vers corbeille en < 2 s, réponses honnêtes en cas d'échec.
+
+---

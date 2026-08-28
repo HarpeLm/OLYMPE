@@ -88,11 +88,11 @@ def handle_response(response: str) -> Optional[str]:
         try:
             if executor and result:
                 response = executor(result)
-                if response and "Erreur" not in str(response) and "pas" not in str(response):
+                if response:
                     return response
-                elif response:
-                    return response
-            elif callback:
+                return ("Désolé, l'action a échoué ou n'est pas encore "
+                        "disponible.")
+            if callback:
                 callback()
             return "C'est fait."
         except Exception as e:

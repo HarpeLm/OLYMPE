@@ -17,6 +17,7 @@
   - [x] Couche de permissions (whitelist de dossiers)
   - [x] Confirmation vocale pour actions destructives
   - [x] Finder (search, open, list, create, move, delete)
+  - [x] Catalogue Finder 19 actions (SAFE/REVERSIBLE/DESTRUCTIVE, corbeille Foundation anti-iCloud)
   - [x] Ouverture/fermeture d'applications (open_app/close_app, alias FR, garde-fou Finder)
   - [ ] Rappels Apple
   - [ ] Notes Apple

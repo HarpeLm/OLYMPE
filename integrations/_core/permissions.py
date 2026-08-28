@@ -73,6 +73,21 @@ def is_allowed(resource_type, path):
     return False, f"Chemin hors whitelist : {path}"
 
 
+def is_readable(path):
+    """Vérifie qu'un chemin peut être LU (readable ou writable, jamais never_touch)."""
+    try:
+        abs_path = str(Path(path).expanduser().resolve())
+    except Exception:
+        return False, f"Chemin invalide : {path}"
+    for forbidden in _ALLOWED_PATHS["never_touch"]:
+        if abs_path == forbidden or abs_path.startswith(forbidden + "/"):
+            return False, f"Chemin protégé : {path}"
+    for allowed in _ALLOWED_PATHS["readable"] + _ALLOWED_PATHS["writable"]:
+        if abs_path == allowed or abs_path.startswith(allowed + "/"):
+            return True, "OK"
+    return False, f"Chemin hors whitelist : {path}"
+
+
 def reload_permissions():
     """Recharge les permissions depuis le fichier YAML (pour tests)."""
     global _ALLOWED_PATHS

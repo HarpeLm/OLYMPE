@@ -16,6 +16,7 @@ RULES = [
     (r"\b(cherche|trouve|recherche)\b.{0,40}\b(fichier|fichiers|pdf|word|excel|image|images|document)\b", "find_file", "files_find"),
     (r"\bfichiers?\b.{0,40}\b(modifiés|modifiées|recemment|récemment|recents|récents)\b", "list_recent_files", "files_recent"),
     (r"\b(vide|vider)\b.{0,20}\bcorbeille\b", "empty_trash", "files_trash"),
+    (r"\b(supprime|supprimer|efface|effacer)\b.{0,40}\bdossiers?\b", "delete_folder", "files_deletefolder"),
     (r"\b(supprime|supprimer|efface|effacer)\b", "delete_file", "files_delete"),
     (r"\b(où est|ou est|où se trouve|montre|affiche|repère)\b", "locate_file", "files_locate"),
     (r"\bdans le finder\b", "locate_file", "files_locate"),
@@ -23,6 +24,16 @@ RULES = [
     (r"\b(ouvre|ouvrir|lance|lancer)\b", "open_app", "app_open"),
     (r"\b(ferme|fermer)\b.{0,40}\.[a-z0-9]{2,5}\b", "close_file", "files_closefile"),
     (r"\b(ferme|fermer|quitte|quitter)\b", "close_app", "app_close"),
+    (r"\b(renomme|renommer)\b.{0,60}\ben\b", "rename_file", "files_rename"),
+    (r"\b(copie|copier)\b.{0,60}\bvers\b", "copy_file", "files_copy"),
+    (r"\b(duplique|dupliquer)\b", "duplicate_file", "files_dup"),
+    (r"\b(zippe|zipper|compresse|compresser)\b", "compress_file", "files_zip"),
+    (r"\b(décompresse|décompresser|extrais|extraire)\b", "extract_archive", "files_unzip"),
+    (r"\b(tague|taguer)\b", "add_tag", "files_tag"),
+    (r"\ben\s+favoris\b", "set_favorite", "files_fav"),
+    (r"\b(écrase|écraser|remplace|remplacer)\b.{0,60}\b(par|avec|sur)\b", "overwrite_file", "files_overwrite"),
+    (r"\bexiste\b", "check_file_exists", "files_exists"),
+    (r"\b(infos?|informations?|taille)\b.{0,40}\b(de|sur|du|des|de la)\b", "get_file_info", "files_info"),
 ]
 
 def prefilter(text):
@@ -96,6 +107,7 @@ def files_slots(text):
         filename = m.group(1).strip()
         # Nettoyer "fichier" résiduel au début
         filename = re.sub(r"^fichier\s+", "", filename)
+        filename = re.sub(r"^dossier\s+", "", filename)
         if filename:
             slots["filename"] = filename
     if "filename" not in slots:
@@ -120,6 +132,46 @@ def files_slots(text):
             name = re.sub(r"^(fichier|dossier)\s+", "", m.group(1).strip())
             if name:
                 slots["filename"] = name
+    if "filename" not in slots:
+        m = re.search(r"\b(?:duplique|dupliquer|zippe|zipper|compresse|compresser|"
+                      r"décompresse|décompresser|extrais|extraire)\s+"
+                      r"(?:le\s+|la\s+|les\s+|mon\s+|ma\s+|mes\s+)?(.{2,60})$", t)
+        if m:
+            name = re.sub(r"^(fichier|dossier)\s+", "", m.group(1).strip())
+            name = re.sub(r"\s+vers\s+.*$", "", name)
+            if name:
+                slots["filename"] = name
+    m = re.search(r"\b(?:décompresse|décompresser|extrais|extraire)\b.{0,60}\s+vers\s+(.{2,60})$", t)
+    if m:
+        slots["destination"] = m.group(1).strip()
+    m = re.search(r"\b(?:renomme|renommer)\s+(.+?)\s+en\s+(.{2,60})$", t)
+    if m:
+        if "filename" not in slots:
+            slots["filename"] = m.group(1).strip()
+        slots["new_name"] = m.group(2).strip()
+    m = re.search(r"\b(?:copie|copier)\s+(.+?)\s+vers\s+(.{2,60})$", t)
+    if m:
+        if "filename" not in slots:
+            slots["filename"] = m.group(1).strip()
+        slots["destination"] = m.group(2).strip()
+    m = re.search(r"\b(?:écrase|écraser|remplace|remplacer)\s+(.+?)\s+(?:par|avec|sur)\s+(.{2,60})$", t)
+    if m:
+        slots["destination"] = m.group(1).strip()
+        slots["source"] = m.group(2).strip()
+    m = re.search(r"\b(?:tague|taguer)\s+(.+?)\s+(?:en|avec)\s+(.{2,40})$", text)
+    if m:
+        if "filename" not in slots:
+            slots["filename"] = m.group(1).lower().strip()
+        slots["tag"] = m.group(2).strip()
+    m = re.search(r"\b(?:mets|mettre|passe|passer)\s+(.+?)\s+en\s+favoris\b", t)
+    if m and "filename" not in slots:
+        slots["filename"] = m.group(1).strip()
+    m = re.search(r"^(.{2,60}?)\s+existe\b", t)
+    if m and "filename" not in slots:
+        slots["filename"] = re.sub(r"^(est-ce que|est-ce qu'|le fichier|le dossier)\s+", "", m.group(1).strip())
+    m = re.search(r"\b(?:infos?|informations?|taille)\s+(?:de|sur|du|des|de la|de l')\s*(.{2,60})$", t)
+    if m and "filename" not in slots:
+        slots["filename"] = m.group(1).strip()
     return slots
 
 

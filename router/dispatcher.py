@@ -209,12 +209,12 @@ class Dispatcher:
             entry["action"] = "deterministic"
             entry["confidence"] = 1.0
             entry["handler"] = self.schemas.get(forced_intent, {}).get("handler")
-            if forced_intent in (FAMILIES.get("files", set()) | {"delete_file", "empty_trash", "locate_file", "open_file", "open_app", "close_app", "close_file"}):
+            if forced_intent in (FAMILIES.get("files", set()) | {"delete_file", "empty_trash", "locate_file", "open_file", "open_app", "close_app", "close_file", "check_file_exists", "get_file_info", "rename_file", "copy_file", "duplicate_file", "compress_file", "extract_archive", "add_tag", "set_favorite", "delete_folder", "overwrite_file"}):
                 merged = dict(entry.get("slots") or {})
                 merged.update(files_slots(text))
                 entry["slots"] = merged
 
-        if entry["intent"] in (FAMILIES.get("files", set()) | {"open_app", "close_app", "close_file"}):
+        if entry["intent"] in (FAMILIES.get("files", set()) | {"open_app", "close_app", "close_file", "check_file_exists", "get_file_info", "rename_file", "copy_file", "duplicate_file", "compress_file", "extract_archive", "add_tag", "set_favorite", "delete_folder", "overwrite_file"}):
             merged = dict(entry.get("slots") or {})
             merged.update(files_slots(text))
             entry["slots"] = merged

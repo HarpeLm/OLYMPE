@@ -4,6 +4,7 @@
 writable:
   - ~/O.L.Y/OLYMPE/data
   - ~/Desktop
+  - ~/Downloads
 
 readable:
   - ~/Documents

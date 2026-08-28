@@ -244,6 +244,115 @@ deterministic_intents:
         required: true
     handler: "integrations/finder.py::close_file"
 
+  # Lot SAFE
+  - name: check_file_exists
+    description: "Vérifier si un fichier existe"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/finder.py::check_file_exists"
+
+  - name: get_file_info
+    description: "Donner taille, type, date et chemin d'un fichier"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/finder.py::get_file_info"
+
+  # Lot REVERSIBLE
+  - name: rename_file
+    description: "Renommer un fichier dans son dossier"
+    slots:
+      - name: filename
+        type: string
+        required: true
+      - name: new_name
+        type: string
+        required: true
+    handler: "integrations/finder.py::rename_file"
+
+  - name: copy_file
+    description: "Copier un fichier vers un dossier autorisé"
+    slots:
+      - name: filename
+        type: string
+        required: true
+      - name: destination
+        type: string
+        required: true
+    handler: "integrations/finder.py::copy_file"
+
+  - name: duplicate_file
+    description: "Créer une copie d'un fichier à côté de l'original"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/finder.py::duplicate_file"
+
+  - name: compress_file
+    description: "Compresser un fichier ou dossier en zip"
+    slots:
+      - name: filename
+        type: string
+        required: true
+      - name: destination
+        type: string
+        required: false
+    handler: "integrations/finder.py::compress_file"
+
+  - name: extract_archive
+    description: "Extraire une archive zip/tar dans un dossier autorisé"
+    slots:
+      - name: filename
+        type: string
+        required: true
+      - name: destination
+        type: string
+        required: false
+    handler: "integrations/finder.py::extract_archive"
+
+  - name: add_tag
+    description: "Ajouter un tag Finder natif à un fichier"
+    slots:
+      - name: filename
+        type: string
+        required: true
+      - name: tag
+        type: string
+        required: true
+    handler: "integrations/finder.py::add_tag"
+
+  - name: set_favorite
+    description: "Marquer un fichier favori (tag Favoris)"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/finder.py::set_favorite"
+
+  # Lot DESTRUCTIVE (confirmation vocale obligatoire)
+  - name: delete_folder
+    description: "Déplacer un dossier vers la corbeille"
+    slots:
+      - name: filename
+        type: string
+        required: true
+    handler: "integrations/finder.py::delete_folder"
+
+  - name: overwrite_file
+    description: "Remplacer un fichier par un autre (confirmation obligatoire)"
+    slots:
+      - name: source
+        type: string
+        required: true
+      - name: destination
+        type: string
+        required: true
+    handler: "integrations/finder.py::overwrite_file"
+
   # === COMMANDES SYSTÈME MACOS ===
   - name: open_app
     description: "Ouvrir une application"
