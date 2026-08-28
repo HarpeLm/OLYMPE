@@ -8,6 +8,8 @@ import importlib.util
 import shutil
 import subprocess
 import sys
+import os
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
 from pathlib import Path
 
 import yaml
@@ -74,7 +76,9 @@ def build_command(cfg, mcp_config=None):
     command = server.get("command")
 
     if not command:
-        if "vllm" in engine:
+        if "llama" in engine:
+            command = ["llama-server"]
+        elif "vllm" in engine:
             command = [sys.executable, "-m", "vllm_mlx.server"]
         else:
             command = [sys.executable, "-m", "mlx_lm.server"]
@@ -88,14 +92,26 @@ def build_command(cfg, mcp_config=None):
             "Vérifie que le module/serveur est installé dans le venv actif."
         )
 
-    cmd += ["--model", repo]
-
     host = str(server.get("host", "127.0.0.1"))
     port = str(server.get("port", 8000))
     cmd += ["--host", host, "--port", port]
 
+    if "llama" in engine:
+        model_path = Path(repo)
+        if not model_path.is_absolute():
+            model_path = ROOT / model_path
+        if not model_path.exists():
+            sys.exit(f"❌ Fichier GGUF introuvable : {model_path}")
+        cmd += ["-m", str(model_path)]
+        cmd += ["-c", str(server.get("ctx_size", 4096))]
+        cmd += ["-np", str(server.get("n_parallel", 2))]
+        cmd += ["-ngl", str(server.get("n_gpu_layers", 99))]
+        if server.get("jinja", True):
+            cmd += ["--jinja"]
+
     # Options spécifiques à vllm-mlx 0.4.1
-    if "vllm" in engine:
+    elif "vllm" in engine:
+        cmd += ["--model", repo]
         reasoning_parser = server.get("reasoning_parser")
         if reasoning_parser:
             cmd += ["--reasoning-parser", str(reasoning_parser)]

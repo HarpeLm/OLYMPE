@@ -18,6 +18,8 @@ def prefilter(text):
     t = text.lower()
     for pattern, intent, reason in RULES:
         if re.search(pattern, t):
+            if reason == "time_date" and re.search(r"demi[- ]heure", t):
+                continue
             return intent, reason
     return None, None
 

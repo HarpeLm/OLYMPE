@@ -393,3 +393,64 @@ get_todays_events) pour le fallback 8B.
 - Lecture (« déjeuner avec Marie »)
 - Détection de conflit (« Pas libre : réunion… »)
 - 8B non réveillé sur les voies déterministes
+
+---
+
+## 2026-08-28 — Palier 2/11 : Migration vllm-mlx → llama-server (prefix cache sur outils)
+
+**Décision : abandonner vllm-mlx 0.4.1 au profit de llama-server (llama.cpp) pour le serveur d'inférence persistant**
+
+### Contexte — problème de latence persistant
+
+Le Palier 2 avait validé vllm-mlx 0.4.1 avec un gain de 76% grâce au prefix caching (22s → 5s en mode chat pur). Mais une fois le tool-calling activé (15 outils MCP), la latence remontait à **20-25 secondes par requête**, même en cache hit.
+
+### Diagnostic
+
+Test comparatif sur le même prompt avec 15 outils :
+- **Test isolé (chat pur, sans outils)** : 3.4s → 1.3s → 1.2s (cache fonctionne)
+- **Test pipeline (avec outils)** : 25s → 21s → 21s (cache ne fonctionne pas)
+
+**Cause racine** : vllm-mlx 0.4.1 traite le tool-calling comme un **chemin de code séparé** du chat normal. Le paramètre `tools` dans l'API OpenAI n'est pas couvert par le prefix cache, donc les définitions d'outils (~2000 tokens, le plus gros morceau du prefill) sont retraitées intégralement à chaque requête.
+
+### Alternative évaluée : llama-server (llama.cpp)
+
+llama-server est le moteur d'inférence le plus éprouvé du secteur (utilisé par Ollama, LM Studio, etc.). Sur nos critères :
+- Support natif du tool-calling Qwen3 (template officiel via `--jinja`)
+- Prefix cache **fonctionnel avec les outils** (prouvé par la communauté)
+- API OpenAI-compatible identique (migration transparente)
+- Modèles GGUF officiels Qwen3-8B disponibles sur Hugging Face
+- Apple Silicon optimisé via Metal
+
+### Résultats mesurés
+
+Installation : `brew install llama.cpp` + téléchargement de `Qwen3-8B-Q4_K_M.gguf` (4.7 Go, quantification Q4_K_M).
+
+Test isolé avec 15 outils :
+- **Requête 1** : 8.33s (prefill à froid)
+- **Requête 2** : 2.42s (cache hit)
+- **Requête 3** : 3.45s (cache hit)
+- **Gain** : ~70% entre appel 1 et appels suivants
+
+Tool-calling : `finish_reason=tool_calls`, arguments JSON bien formés, parsing structuré natif.
+
+Migration du pipeline :
+- `config/models.yaml` : `engine: llama-cpp`, `repo: models/qwen3-8b-q4_k_m.gguf`
+- `server/start.py` : support du binaire `llama-server` + arguments (`-m`, `-c`, `-np`, `-ngl`, `--jinja`)
+- Lancement automatique via `python server/start.py`
+
+### Critère de décision
+
+Le test §11.1 de la roadmap ("vllm-mlx comme fondation du serveur, ou repartir sur une couche plus fine ?") est tranché :
+- vllm-mlx **abandonné** : limitation structurelle sur le tool-calling (pas de cache)
+- llama-server **retenu** : prefix cache fonctionnel, latence fallback divisée par ~8 (de 20s à 2-3s)
+- Modèle 8B **conservé** : marge de raisonnement P6/P7 validée une fois le cache actif
+
+### Friction documentée
+
+Le téléchargement initial du GGUF a échoué silencieusement (fichier de 15 octets = 404) à cause d'une URL en minuscules au lieu de majuscules (`qwen3-8b-q4_k_m.gguf` vs `Qwen3-8B-Q4_K_M.gguf`). Commande `hf models list` pour identifier le nom exact avant téléchargement.
+
+### Impact sur la roadmap
+
+Le point §11.1 est clos. Le Palier 2 (serveur persistant) est maintenant **définitivement validé** avec llama-server. La latence de fallback LLM est passée de ~20s à ~3s, ce qui rend le 8B viable en production malgré son débit de génération de 14 tokens/s.
+
+---

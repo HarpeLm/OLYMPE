@@ -15,6 +15,8 @@ import asyncio
 import json
 import queue
 import sys
+import os
+os.environ.setdefault("HF_HUB_OFFLINE", "1")
 import time
 import uuid
 from pathlib import Path
@@ -87,55 +89,50 @@ def beep(duration=0.18, freq=880, sample_rate=24000):
 
 
 class MCPBridge:
-    """Pont vers le serveur MCP d'outils : déclaration + exécution."""
+    """Pont persistant vers le serveur MCP (une session pour tout le process)."""
 
-    def _server_params(self):
+    def __init__(self):
+        import threading
         from mcp.client.stdio import StdioServerParameters
-        return StdioServerParameters(
+        self._params = StdioServerParameters(
             command=sys.executable, args=[str(MCP_SERVER_PATH)]
         )
+        self._loop = asyncio.new_event_loop()
+        threading.Thread(target=self._loop.run_forever, daemon=True).start()
+        asyncio.run_coroutine_threadsafe(self._open(), self._loop).result(timeout=30)
+
+    async def _open(self):
+        from mcp import ClientSession
+        from mcp.client.stdio import stdio_client
+        self._stdio = stdio_client(self._params)
+        self._read, self._write = await self._stdio.__aenter__()
+        self._session_ctx = ClientSession(self._read, self._write)
+        self._session = await self._session_ctx.__aenter__()
+        await self._session.initialize()
 
     def list_tools_openai(self):
-        """Récupère les outils du serveur MCP au format OpenAI."""
-        from mcp import ClientSession
-        from mcp.client.stdio import stdio_client
-
         async def _list():
-            async with stdio_client(self._server_params()) as (read, write):
-                async with ClientSession(read, write) as session:
-                    await session.initialize()
-                    tools = await session.list_tools()
-                    return [
-                        {
-                            "type": "function",
-                            "function": {
-                                "name": t.name,
-                                "description": t.description or "",
-                                "parameters": t.inputSchema
-                                or {"type": "object", "properties": {}},
-                            },
-                        }
-                        for t in tools.tools
-                    ]
-
-        return asyncio.run(_list())
+            tools = await self._session.list_tools()
+            return [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": t.name,
+                        "description": t.description or "",
+                        "parameters": t.inputSchema
+                        or {"type": "object", "properties": {}},
+                    },
+                }
+                for t in tools.tools
+            ]
+        return asyncio.run_coroutine_threadsafe(_list(), self._loop).result(timeout=30)
 
     def call_tool(self, name, arguments):
-        """Exécute un outil via le serveur MCP."""
-        from mcp import ClientSession
-        from mcp.client.stdio import stdio_client
-
         async def _call():
-            async with stdio_client(self._server_params()) as (read, write):
-                async with ClientSession(read, write) as session:
-                    await session.initialize()
-                    result = await session.call_tool(name, arguments)
-                    texts = [
-                        b.text for b in result.content if getattr(b, "text", None)
-                    ]
-                    return texts[0] if texts else "(aucun contenu)"
-
-        return asyncio.run(_call())
+            result = await self._session.call_tool(name, arguments)
+            texts = [b.text for b in result.content if getattr(b, "text", None)]
+            return texts[0] if texts else "(aucun contenu)"
+        return asyncio.run_coroutine_threadsafe(_call(), self._loop).result(timeout=60)
 
 
 class LLMClient:
@@ -237,9 +234,11 @@ class VoicePipeline:
     def llm_with_tools(self, text):
         """Boucle tool-calling : détecte, exécute via MCP, réinjecte."""
         messages = [
-            {"role": "system", "content": SYSTEM_PROMPT + self._memory_context()},
-            {"role": "user", "content": text + "\\n/no_think"},
+        {"role": "system", "content": SYSTEM_PROMPT},
         ]
+        ctx = self._memory_context()
+        user_content = text + (ctx or "") + "\n/no_think"
+        messages.append({"role": "user", "content": user_content})
 
         for _ in range(3):  # garde-fou anti-boucle infinie
             data = self.llm.chat_completion(
@@ -325,6 +324,7 @@ class VoicePipeline:
         if action == "deterministic":
             response = self.try_execute_handler(result)
             if response is not None:
+                self.memory.log_turn(self.session_id, text, response)
                 return response
             print("[PIPELINE] Handler non implémenté → LLM + outils MCP")
             answer = self.llm_with_tools(text)
@@ -405,4 +405,9 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import os
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n[PIPELINE] Arrêt.")
+        os._exit(0)

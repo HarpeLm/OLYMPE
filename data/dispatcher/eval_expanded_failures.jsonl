@@ -4,7 +4,7 @@
 {"text": "reviens à la chanson d'avant", "expected": "previous_track", "got": "play_music", "action": "deterministic", "confidence": 0.75}
 {"text": "c'est quoi cette chanson", "expected": "get_now_playing", "got": "play_music", "action": "deterministic", "confidence": 0.75}
 {"text": "qu'est-ce qui joue en ce moment", "expected": "get_now_playing", "got": "play_music", "action": "deterministic", "confidence": 0.75}
-{"text": "coupe la musique dans une demi-heure", "expected": "sleep_timer", "got": "general_question", "action": "fallback", "confidence": 0.0}
+{"text": "coupe la musique dans une demi-heure", "expected": "sleep_timer", "got": "play_music", "action": "deterministic", "confidence": 0.75}
 {"text": "qu'est-ce qui suit dans mon planning", "expected": "get_next_event", "got": "play_music", "action": "fallback", "confidence": 0.45}
 {"text": "mon prochain rendez-vous", "expected": "get_next_event", "got": "play_music", "action": "fallback", "confidence": 0.45}
 {"text": "mes événements de vendredi", "expected": "get_events_date", "got": "play_music", "action": "fallback", "confidence": 0.45}

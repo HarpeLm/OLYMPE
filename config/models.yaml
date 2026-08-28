@@ -1,60 +1,55 @@
 roles:
   chat:
-    repo: mlx-community/Qwen3-8B-4bit
+    repo: models/qwen3-8b-q4_k_m.gguf
     quantization: 4-bit
-    notes: "Choix Palier 1 - voir DECISIONS.md"
-
+    notes: Choix Palier 1 - voir DECISIONS.md
   dispatcher:
     repo: mlx-community/Qwen2.5-0.5B-Instruct-4bit
     quantization: 4-bit
     adapter: training/adapters/dispatcher-best
-    notes: "Base LoRA Palier 4 - resident en permanence"
-
+    notes: Base LoRA Palier 4 - resident en permanence
   stt:
     repo: mlx-community/Qwen3-ASR-1.7B-4bit
     quantization: 4-bit
     lang: French
     sample_rate: 16000
-    hotwords: ["Olympe", "Tadej Pogačar", "Pogačar"]
-    notes: "Qwen3-ASR validé Palier 5 - 1.61 Go RAM, français supporté"
-
+    hotwords:
+    - Olympe
+    - Tadej Pogačar
+    - Pogačar
+    notes: Qwen3-ASR validé Palier 5 - 1.61 Go RAM, français supporté
   tts:
     repo: mlx-community/Qwen3-TTS-12Hz-1.7B-CustomVoice-6bit
     quantization: 6-bit
     default_voice: serena
     lang: french
     sample_rate: 24000
-    notes: "Validé Palier 5 le 2026-08-26 - clonage vocal natif (objectif voix copine), FR supporté, 2.76 Go RAM"
-
+    notes: Validé Palier 5 le 2026-08-26 - clonage vocal natif (objectif voix copine),
+      FR supporté, 2.76 Go RAM
   wake_word:
-    # Modèle de travail temporaire : hey_jarvis (pré-entraîné openWakeWord).
-    # TODO Palier 5 suite : entraîner "Olympe" via le notebook Colab officiel
-    # openWakeWord (https://github.com/dscripka/openWakeWord#training-new-models)
-    # puis remplacer le chemin ci-dessous par voice/wake_models/olympe.onnx.
-    # Zéro changement de code nécessaire : seul ce champ change.
     model: hey_jarvis
     threshold: 0.5
     inference_framework: onnx
-    notes: "Provisoire - voir DECISIONS.md pour le plan d'entraînement Olympe"
-
+    notes: Provisoire - voir DECISIONS.md pour le plan d'entraînement Olympe
 server:
-  engine: vllm-mlx
-  command: ["python", "-m", "vllm_mlx.server"]
-  host: "127.0.0.1"
+  engine: llama-cpp
+  host: 127.0.0.1
   port: 8000
-  reasoning_parser: "qwen3"
+  reasoning_parser: qwen3
   max_tokens: 512
   trust_remote_code: false
   extra_args: []
-
-# Parametres d'entrainement LoRA du dispatcheur (Palier 4)
+  ctx_size: 4096
+  n_parallel: 2
+  n_gpu_layers: 99
+  jinja: true
 dispatcher_training:
   seed_dir: data/dispatcher
   output_dir: data/dispatcher/dataset
   adapter_path: training/adapters/dispatcher-v2
   iters: 300
   batch_size: 2
-  learning_rate: 2.0e-5
+  learning_rate: 2.0e-05
   lora_layers: 16
   lora_rank: 8
   seed: 42

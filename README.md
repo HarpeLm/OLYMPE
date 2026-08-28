@@ -1,73 +1,48 @@
 # OLYMPE
 
-Assistant vocal local sur MLX — zéro app tierce, zéro modèle codé en dur.
+Assistant vocal local sur Apple Silicon — zéro app tierce, zéro modèle codé en dur.
 
-OLYMPE est un assistant vocal pensé pour tourner en local sur Apple Silicon.
-L’objectif est de construire un système complet : wake word, STT, LLM, TTS,
-tool calling, mémoire persistante et intégrations système, sans dépendre d’une
-application tierce visible par l’utilisateur final.
+## Philosophie
 
-Voir la roadmap complète pour le détail des 7 paliers de développement.
+1. Zéro app tierce visible pour l'utilisateur final — tout tourne en local.
+2. Zéro modèle codé en dur — chaque LLM/STT/TTS est déclaré dans config/models.yaml.
+3. Le gros modèle ne se réveille que quand c'est nécessaire — un petit routeur dispatche en amont.
+4. Rien n'est jeté — chaque palier produit un artefact réutilisable, versionné sur GitHub.
 
----
+## Matériel
 
-## Principes directeurs
+- MacBook Air M5, 16 Go RAM — machine de développement et de service final
+- PC avec RTX 4070 Ti — fine-tuning LoRA ponctuel (aller-retour documenté)
 
-1. **Zéro app tierce visible**  
-   Tout tourne en local, sous contrôle de l’utilisateur.
+## Structure
 
-2. **Zéro modèle codé en dur**  
-   Chaque modèle — LLM, STT, TTS, wake word, dispatcher — est déclaré dans
-   `/config/models.yaml` et résolu dynamiquement depuis Hugging Face.
+    /config — registre déclaratif des modèles (models.yaml)
+    /server — couche d'inférence persistante (llama-server)
+    /router — dispatcheur NLU léger (Qwen2.5-0.5B LoRA)
+    /voice — wake word, STT, TTS
+    /agent — tool calling (MCP), mémoire persistante (SQLite)
+    /integrations — AppleScript/JXA (Calendrier, Finder, Rappels, Notes)
+    /training — scripts de fine-tuning LoRA (dev only)
+    /bench — tests A/B modèles
+    /data — logs et datasets
+    /models — GGUF pour llama-server (non versionné)
 
-3. **Le gros modèle ne se réveille que si nécessaire**  
-   Un petit routeur NLU traite les requêtes simples afin de préserver la
-   latence et la mémoire sur une machine 16 Go de RAM.
+## Dépendances système
 
-4. **Rien n’est jeté**  
-   Chaque palier produit des artefacts réutilisables : scripts de bench,
-   décisions documentées, configuration, logs, datasets.
+- Python 3.11+ avec venv
+- brew install llama.cpp (serveur d'inférence llama-server)
+- Modèles MLX téléchargés depuis Hugging Face au premier usage
+- GGUF Qwen3-8B-Q4_K_M (~4,7 Go) dans /models/
 
----
+## Démarrage
 
-## Matériel cible
+    source .venv/bin/activate
+    nohup python server/start.py > server.log 2>&1 &
+    python voice/pipeline.py
 
-- **MacBook Air M5, 16 Go RAM**
-  Machine principale de développement et de service final.
-  Inférence locale via MLX / Apple Silicon.
+## Documentation
 
-- **PC avec RTX 4070 Ti**
-  Utilisé ponctuellement pour certains fine-tunings LoRA plus rapides,
-  avec export documenté vers le Mac.
-
----
-
-## État d’avancement
-
-| Palier | Nom | État |
-|---|---|---|
-| P0 | Setup du dépôt GitHub | Validé |
-| P1 | Moteur d’inférence texte | Validé |
-| P2 | Serveur persistant | En cours |
-| P3 | Registre de modèles dynamique | À venir |
-| P4 | Dispatcheur NLU léger | À venir |
-| P5 | Couche vocale | À venir |
-| P6 | Agentivité & mémoire | À venir |
-| P7 | Intégrations système | À venir |
-
-Les décisions techniques sont tracées dans `DECISIONS.md`.
-
----
-
-## Structure du dépôt
-
-```text
-/config        — registre déclaratif des modèles et paramètres
-/server        — couche d’inférence persistante
-/router        — dispatcheur NLU léger
-/voice         — wake word, STT, TTS
-/agent         — tool calling, mémoire persistante
-/integrations  — AppleScript/JXA, Home Assistant, etc.
-/training      — scripts de fine-tuning LoRA, dev uniquement
-/bench         — tests A/B modèles et scripts de mesure
-/data          — logs, datasets JSONL, données collectées
+- DECISIONS.md — journal des décisions techniques
+- TODO.md — état d'avancement des paliers
+- olympe-roadmap-complete.docx — roadmap des 7 paliers
+- OLYMPE_Palier8_Controle_Apps.docx — architecture contrôle des apps macOS
