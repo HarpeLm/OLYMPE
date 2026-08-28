@@ -19,6 +19,7 @@ from pathlib import Path
 
 import yaml
 from mlx_lm import load, generate
+import mlx.core as mx
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))

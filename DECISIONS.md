@@ -454,3 +454,56 @@ Le téléchargement initial du GGUF a échoué silencieusement (fichier de 15 oc
 Le point §11.1 est clos. Le Palier 2 (serveur persistant) est maintenant **définitivement validé** avec llama-server. La latence de fallback LLM est passée de ~20s à ~3s, ce qui rend le 8B viable en production malgré son débit de génération de 14 tokens/s.
 
 ---
+
+---
+
+## 2026-08-28 — Dette technique : contention GPU Metal inter-process
+
+**Problème identifié : latence erratique du dispatcher (0.3s → 10-16s) après un appel LLM via llama-server**
+
+### Diagnostic
+
+Tests systématiques montrant que :
+- Le dispatcher seul (en boucle) : stable à 0.24-0.34s
+- llama-server seul (en boucle) : stable à 2.8-3.6s  
+- Dispatcher **juste après** llama-server : erratique 1.8s → 16.7s
+
+**Cause racine** : contention Metal inter-process sur mémoire unifiée. llama-server (process séparé) et le dispatcher MLX (process Python) utilisent tous deux Metal. Quand llama-server fait du prefill/génération, il monopolise des ressources GPU que le dispatcher attend ensuite pour sa propre inférence.
+
+### Tentatives de résolution (toutes infructueuses)
+
+| Tentative | Résultat |
+|---|---|
+| `mx.metal.clear_cache()` après LLM | Aucun effet |
+| Délai de 0.15s après LLM | Insuffisant |
+| Délai de 1-3s après LLM | Insuffisant |
+| Réduire llama-server à `-np 1` (1 slot) | Aucun effet |
+| Forcer dispatcher sur CPU | mlx_lm ne supporte pas CPU (KeyError) |
+
+### Impact en usage réel
+
+La boucle vocale complète (wake word → STT → dispatcheur → LLM → TTS) inclut naturellement plusieurs secondes de délai entre deux commandes :
+- Génération TTS : 2-5s
+- Attente wake word : variable
+- Transcription STT : 1-2s
+
+Ce délai naturel masque partiellement la contention, mais ne l'élimine pas complètement.
+
+### Décision
+
+**Dette technique acceptée**. La latence moyenne du dispatcher après un fallback LLM est ~5-8s au lieu de 0.3s. Acceptable car :
+- Les fallbacks sont rares en usage normal (dispatcheur route correctement 80.9% du temps)
+- Le délai naturel de la boucle vocale masque partiellement le problème
+- Aucune solution technique propre identifiée sans changement d'architecture majeur
+
+### Solutions non retenues (coût disproportionné)
+
+1. **Dispatcher dans process séparé** : complexité IPC, latence supplémentaire
+2. **Dispatcher non-MLX** : abandonner le fine-tuning LoRA investi au Palier 4
+3. **Serveur d'inférence différent** : llama-server déjà optimal pour tool-calling + cache
+
+### Leçons apprises
+
+Sur Apple Silicon avec mémoire unifiée, deux process utilisant Metal simultanément peuvent créer une contention GPU imprévisible. Ce n'est pas un bug mais une limitation structurelle de l'architecture.
+
+---
