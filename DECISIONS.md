@@ -579,3 +579,39 @@ DESTRUCTIVE (confirmation vocale) : delete_file, delete_folder, empty_trash, ove
 Validé de bout en bout : copie vers Downloads, tags natifs xattr avec casse préservée, dossier vers corbeille en < 2 s, réponses honnêtes en cas d'échec.
 
 ---
+
+---
+
+## 2026-08-29 — Wake word « Olympe » : leçon de l'expérimentation CNN maison (Palier 5)
+
+**Décision : retour au pipeline officiel openWakeWord ; le CNN maison est abandonné.**
+
+### Contexte
+
+Tentative d'entraîner un wake word « Olympe » avec un CNN minuscule (~1 Mo,
+2 conv + 1 dense) en MLX, directement sur le Mac, sur un dataset de
+~285 positifs / ~560 négatifs (réels + synthétiques Qwen3-TTS + augmentation).
+
+### Résultats mesurés
+
+- Évaluation sur fichiers isolés : 10/10 positifs, 12/12 négatifs.
+- En flux continu live : faux positifs inacceptables (« bonjour » score 1.00,
+  « Olympique » parfois détecté), malgré seuil 0.8 + période réfractaire 1,2 s.
+
+### Analyse
+
+- Un CNN from scratch sans backbone pré-entraîné n'a pas la robustesse
+  nécessaire au flux continu : il mémorise des corrélations fragiles
+  (acoustique micro/pièce) plutôt que le motif phonétique.
+- Dataset ~3 ordres de grandeur trop petit : les modèles openWakeWord officiels
+  s'appuient sur des dizaines de milliers d'heures de négatifs et un backbone
+  d'embeddings pré-entraîné sur des données massives.
+- L'évaluation sur fichiers isolés n'est PAS prédictive du comportement en
+  flux continu — toujours évaluer en conditions réelles de déploiement.
+
+### Conséquence
+
+Le wake word « Olympe » sera entraîné via le pipeline officiel openWakeWord
+(notebook automatic_model_training), avec génération synthétique française
+(Qwen3-TTS) pour respecter la phonétique du mot. Conformément à la roadmap
+(Palier 5) : openWakeWord est la solution standard retenue.

@@ -7,7 +7,7 @@ STT/TTS chargés à la demande).
 
 Le modèle est résolu depuis config/models.yaml (jamais codé en dur).
 Actuellement : hey_jarvis (modèle pré-entraîné provisoire).
-Plus tard : olympe (modèle entraîné via Colab) — zéro changement de code.
+Plus tard : olympe (modèle entraîné via pipeline officiel openWakeWord).
 
 Usage module :
     from voice.wake_word import WakeWordEngine
