@@ -679,3 +679,24 @@ box TaHoma via son API locale (mode développeur, port 8443).
 - "mets les volets à 30%" -> shutters.set_position {percent: 30} (global)
 - Garde-fous : vocabulaire de pièces exigé ("ferme la télé" ne matche
   pas), tests orchestrateur en dry-run (aucune action réelle)
+
+## 2026-08-31 — Review de code : les 4 points du plan d'amélioration corrigés
+
+**Décision** : appliquer intégralement le plan d'amélioration du 31/08/2026.
+
+1. **Injection AppleScript (critique)** : `_as_literal()` dans
+   `_core/applescript_runner.py` + cadenas AST (`test_no_raw_interpolation.py`)
+   + migration des 14 interpolations de `apple_calendar.py` et `finder.py`.
+2. **Duplication (élevé)** : registre partagé `agent/tools/` (21 outils,
+   un fichier par outil, découverte récursive) ; `mj.py` et `mcp_server.py`
+   réduits à des adaptateurs minces (86 et 49 lignes).
+3. **empty_trash (moyen)** : garde `confirmed=False` ; seul l'executor de
+   confirmation vocale (`_run_confirmed` dans `voice/pipeline.py`) injecte
+   `confirmed=True`.
+4. **Erreurs silencieuses (faible)** : `except Exception: pass` remplacés par
+   des exceptions ciblées avec message de repli dans `agent/tools/` ; les
+   adaptateurs de bord remontent l'erreur au lieu de la taire.
+
+**Évolutions futures tracées** : builder AppleScript / `on run argv` ;
+Rust limité aux composants candidats (wake word, boîtier embarqué) —
+le cœur reste Python (MLX n'a pas de bindings Rust).
