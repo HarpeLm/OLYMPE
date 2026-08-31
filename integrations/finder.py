@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from integrations._core.applescript_runner import run_applescript
+from integrations._core.applescript_runner import run_applescript, _as_literal
 from integrations._core.permissions import is_allowed, is_readable, _ALLOWED_PATHS
 
 
@@ -126,7 +126,7 @@ def list_folder(path=None, **_):
         return f"{path} n'est pas un dossier."
     script = f'''
     tell application "Finder"
-        set folderItems to name of every item of folder (POSIX file "{abs_path}" as alias)
+        set folderItems to name of every item of folder (POSIX file {_as_literal(abs_path)} as alias)
         set output to ""
         repeat with i from 1 to count of folderItems
             if i > 10 then
@@ -221,7 +221,7 @@ def create_folder(path=None, name=None, **_):
         return f"{target} existe déjà."
     script = f'''
     tell application "Finder"
-        make new folder at (POSIX file "{str(parent)}" as alias) with properties {{name:"{name}"}}
+        make new folder at (POSIX file {_as_literal(parent)} as alias) with properties {{name:{_as_literal(name)}}}
     end tell
     '''
     try:
@@ -247,7 +247,7 @@ def move_file(source=None, destination=None, **_):
         return f"Je ne peux pas déplacer vers {destination} : {dst_reason}"
     script = f'''
     tell application "Finder"
-        move (POSIX file "{str(src)}" as alias) to (POSIX file "{str(dst)}" as alias)
+        move (POSIX file {_as_literal(src)} as alias) to (POSIX file {_as_literal(dst)} as alias)
     end tell
     '''
     try:
@@ -282,7 +282,7 @@ def delete_file(filename=None, path=None, **_):
         return f"Je ne peux pas supprimer {p.name} : {reason}"
     script = f"""
     tell application "Finder"
-        delete (POSIX file "{str(p.resolve())}" as alias)
+        delete (POSIX file {_as_literal(p.resolve())} as alias)
     end tell
     """
     try:
@@ -341,10 +341,10 @@ def close_file(filename=None, **_):
             "Microsoft Word", "Microsoft Excel", "Microsoft PowerPoint"]
     for app in _running_apps(apps):
         script = f"""
-        tell application "{app}"
-            if (count of (every document whose name is "{target}")) > 0 then
-                close (every document whose name is "{target}")
-                return "ok:{app}"
+        tell application {_as_literal(app)}
+            if (count of (every document whose name is {_as_literal(target)})) > 0 then
+                close (every document whose name is {_as_literal(target)})
+                return "ok:" & {_as_literal(app)}
             end if
         end tell
         return "none"
@@ -585,7 +585,7 @@ def delete_folder(filename=None, folder=None, **_):
     script = f"""
     ObjC.import('Foundation');
     var fm = $.NSFileManager.defaultManager;
-    var url = $.NSURL.fileURLWithPath('{str(p.resolve())}');
+    var url = $.NSURL.fileURLWithPath({_as_literal(p.resolve())});
     var err = Ref();
     var ok = fm.trashItemAtURLResultingItemURLError(url, null, err);
     ok ? 'ok' : ('err:' + err[0].localizedDescription);

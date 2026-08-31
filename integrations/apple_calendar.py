@@ -16,7 +16,7 @@ Test silencieux :
 """
 import re
 from datetime import datetime, timedelta
-from integrations._core.applescript_runner import run_applescript
+from integrations._core.applescript_runner import run_applescript, _as_literal
 
 CALENDAR_NAME = "Olympe"
 
@@ -143,7 +143,7 @@ def create_event(title=None, date=None, time=None, **_):
         set hours of d to {h}
         set minutes of d to {mi}
         set seconds of d to 0
-        make new event at end of events of calendar "{CALENDAR_NAME}" with properties {{summary:"{title}", start date:d, end date:d + (30 * minutes)}}
+        make new event at end of events of calendar "{CALENDAR_NAME}" with properties {{summary:{_as_literal(title)}, start date:d, end date:d + (30 * minutes)}}
     end tell
     '''
     run_applescript(script)
@@ -237,7 +237,7 @@ def search(query=None, **_):
     tell application "Calendar"
         repeat with cal in calendars
             try
-                set evts to (every event of cal whose start date >= now and start date <= horizon and summary contains "{q}")
+                set evts to (every event of cal whose start date >= now and start date <= horizon and summary contains {_as_literal(q)})
                 repeat with e in evts
                     set end of eventList to (summary of e & " le " & (start date of e as string))
                 end repeat
@@ -268,7 +268,7 @@ def create_recurring(title=None, date=None, recurrence=None, **_):
         set hours of d to 9
         set minutes of d to 0
         set seconds of d to 0
-        set newEvent to make new event at end of events of calendar "{CALENDAR_NAME}" with properties {{summary:"{title}", start date:d, end date:d + (30 * minutes)}}
+        set newEvent to make new event at end of events of calendar "{CALENDAR_NAME}" with properties {{summary:{_as_literal(title)}, start date:d, end date:d + (30 * minutes)}}
         try
             set recurrence of newEvent to "{freq}"
         end try
