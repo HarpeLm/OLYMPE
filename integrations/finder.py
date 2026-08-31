@@ -292,8 +292,18 @@ def delete_file(filename=None, path=None, **_):
         return f"Erreur : {e}"
 
 
-def empty_trash(**_):
-    """Vide la corbeille (DESTRUCTIVE, confirmation vocale obligatoire)."""
+def empty_trash(confirmed=False, **_):
+    """Vide la corbeille (DESTRUCTIVE).
+
+    Garde de sécurité locale : l'exécution est refusée tant que
+    `confirmed` n'est pas True. Seul le chemin de confirmation vocale
+    (voice/pipeline.py -> _core/confirmation.py) injecte confirmed=True
+    dans les slots au moment de l'exécution. Ne jamais appeler cette
+    fonction directement avec confirmed=True sans confirmation humaine.
+    """
+    if confirmed is not True:
+        return ("Refusé : vider la corbeille exige une confirmation "
+                "vocale (confirmed=True).")
     try:
         run_applescript('tell application "Finder" to empty trash')
         return "Corbeille vidée."

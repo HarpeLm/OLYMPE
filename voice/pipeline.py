@@ -341,8 +341,15 @@ class VoicePipeline:
                         f"par {slots.get('source') or 'un autre'}")
             else:
                 desc = "vider la corbeille"
-            question = request_confirmation(
-                desc, dict(result), self.try_execute_handler)
+            def _run_confirmed(res):
+                """Executor du chemin confirmé : injecte confirmed=True."""
+                res = dict(res)
+                slots = dict(res.get("slots") or {})
+                slots["confirmed"] = True
+                res["slots"] = slots
+                return self.try_execute_handler(res)
+
+            question = request_confirmation(desc, dict(result), _run_confirmed)
             self.memory.log_turn(self.session_id, text, question)
             return question
 
