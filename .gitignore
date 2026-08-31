@@ -38,3 +38,4 @@ data/memory/*.db
 *.log
 *.bak
 models/*.gguf
+config/tahoma.yaml
