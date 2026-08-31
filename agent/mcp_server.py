@@ -168,7 +168,37 @@ async def list_tools() -> list[Tool]:
                 "required": ["query"]
             }
         ),
-    ]
+            Tool(
+            name="list_shutters",
+            description="Liste les volets Somfy de la maison avec leur état actuel (ouvert/fermé/pourcentage)",
+            inputSchema={"type": "object", "properties": {}, "required": []}
+        ),
+        Tool(
+            name="open_shutters",
+            description="Ouvre complètement un volet Somfy par son nom (ex: Cuisine, Bureau, Chambre Fabian, Baie 1)",
+            inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Nom du volet"}}, "required": ["name"]}
+        ),
+        Tool(
+            name="close_shutters",
+            description="Ferme complètement un volet Somfy par son nom",
+            inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Nom du volet"}}, "required": ["name"]}
+        ),
+        Tool(
+            name="set_shutter_position",
+            description="Positionne un volet Somfy à un pourcentage d'ouverture (0=fermé, 100=ouvert)",
+            inputSchema={"type": "object", "properties": {"name": {"type": "string", "description": "Nom du volet"}, "percent": {"type": "integer", "description": "Pourcentage d'ouverture (0-100)"}}, "required": ["name", "percent"]}
+        ),
+        Tool(
+            name="open_all_shutters",
+            description="Ouvre tous les volets de la maison",
+            inputSchema={"type": "object", "properties": {}, "required": []}
+        ),
+        Tool(
+            name="close_all_shutters",
+            description="Ferme tous les volets de la maison",
+            inputSchema={"type": "object", "properties": {}, "required": []}
+        ),
+]
 
 
 @server.call_tool()
@@ -289,7 +319,7 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     elif name == "create_calendar_event":
         import sys as _sys
         _sys.path.insert(0, str(ROOT))
-        from integrations.calendar import create_event
+        from integrations.apple_calendar import create_event
         return [TextContent(type="text", text=create_event(
             title=arguments.get("title"), date=arguments.get("date"),
             time=arguments.get("time")))]
@@ -297,13 +327,13 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
     elif name == "get_next_calendar_event":
         import sys as _sys
         _sys.path.insert(0, str(ROOT))
-        from integrations.calendar import get_next_event
+        from integrations.apple_calendar import get_next_event
         return [TextContent(type="text", text=get_next_event())]
 
     elif name == "get_todays_events":
         import sys as _sys
         _sys.path.insert(0, str(ROOT))
-        from integrations.calendar import get_events_today
+        from integrations.apple_calendar import get_events_today
         return [TextContent(type="text", text=get_events_today())]
 
     elif name == "web_search":
@@ -321,6 +351,57 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
         except Exception as e:
             return [TextContent(type="text", text=f"Erreur SearXNG : {e}")]
 
+    elif name == "list_shutters":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.tahoma import list_shutters as _tahoma_list
+        lignes = []
+        for s in _tahoma_list():
+            c = s["closure"]
+            pos = "ferme" if c == 100 else ("ouvert" if c == 0 else str(100 - c) + "% ouvert")
+            lignes.append(s["name"] + " (" + pos + ")")
+        return [TextContent(type="text", text="Volets : " + ", ".join(lignes))]
+    elif name == "open_shutters":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.tahoma import open_shutter
+        try:
+            r = open_shutter(arguments.get("name", ""))
+        except ValueError as e:
+            r = {"success": False, "message": str(e)}
+        return [TextContent(type="text", text=r["message"])]
+    elif name == "close_shutters":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.tahoma import close_shutter
+        try:
+            r = close_shutter(arguments.get("name", ""))
+        except ValueError as e:
+            r = {"success": False, "message": str(e)}
+        return [TextContent(type="text", text=r["message"])]
+    elif name == "set_shutter_position":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.tahoma import set_shutter_position
+        try:
+            r = set_shutter_position(arguments.get("name", ""), int(arguments.get("percent", 50)))
+        except ValueError as e:
+            r = {"success": False, "message": str(e)}
+        return [TextContent(type="text", text=r["message"])]
+    elif name == "open_all_shutters":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.tahoma import list_shutters as _tahoma_list, open_shutter
+        for s in _tahoma_list():
+            open_shutter(s["name"])
+        return [TextContent(type="text", text="Tous les volets sont en cours d'ouverture.")]
+    elif name == "close_all_shutters":
+        import sys as _sys
+        _sys.path.insert(0, str(ROOT))
+        from integrations.tahoma import list_shutters as _tahoma_list, close_shutter
+        for s in _tahoma_list():
+            close_shutter(s["name"])
+        return [TextContent(type="text", text="Tous les volets sont en cours de fermeture.")]
     raise ValueError(f"Outil inconnu : {name}")
 
 

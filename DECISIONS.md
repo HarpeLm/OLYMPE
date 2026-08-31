@@ -615,3 +615,67 @@ Le wake word « Olympe » sera entraîné via le pipeline officiel openWakeWord
 (notebook automatic_model_training), avec génération synthétique française
 (Qwen3-TTS) pour respecter la phonétique du mot. Conformément à la roadmap
 (Palier 5) : openWakeWord est la solution standard retenue.
+
+---
+
+## 2026-08-31 — Leçon de nommage : jamais utiliser un nom de module stdlib
+
+**Décision : renommage de `integrations/calendar.py` → `integrations/apple_calendar.py`.**
+
+### Contexte
+
+Le fichier `integrations/calendar.py` portait le même nom que le module
+standard Python `calendar` (gestion des dates). Quand Python (via
+`email._parseaddr`) importait son propre `calendar`, il trouvait d'abord
+notre fichier local, qui essayait lui-même d'importer
+`integrations._core.applescript_runner` — d'où un `ModuleNotFoundError`.
+
+### Règle
+
+Un module interne ne doit **jamais** avoir le même nom qu'un module de
+la stdlib Python ou qu'une bibliothèque tierce installée. Préfixer par
+le domaine (`apple_`, `tahoma_`, etc.) quand le nom naturel est ambigu.
+
+---
+
+## 2026-08-31 — Palier 7 : intégration TaHoma (volets Somfy)
+
+### Décision : API locale Overkiz directe plutôt que Home Assistant
+
+**Contexte** : la roadmap recommandait Home Assistant pour la domotique.
+Deux options : installer HA (service 24h/24) ou parler directement à la
+box TaHoma via son API locale (mode développeur, port 8443).
+
+**Choix retenu** : API Overkiz directe.
+
+**Raisonnement** :
+- 100 % local, aucun cloud (cohérent avec la philosophie du projet)
+- Moins de pièces mobiles et ~500 Mo de RAM économisés sur 16 Go
+- La box expose déjà tout ; le protocole io-homecontrol est
+  bidirectionnel (lecture d'état réelle des volets)
+
+**Points de vigilance** :
+- Token gitignoré (`config/tahoma.yaml`) — ne jamais committer
+- SSL auto-signé : vérification désactivée acceptable uniquement en
+  circuit fermé local
+- Nommage des états : `core:ClosureState` (0 = ouvert, 100 = fermé)
+
+### Architecture en 3 couches
+
+- `integrations/_core/tahoma_client.py` : client bas niveau (deviceURL +
+  commandes brutes), stdlib uniquement
+- `integrations/tahoma.py` : couche métier (noms humains, traduction
+  pourcentage -> closure), niveau de risque REVERSIBLE
+- `agent/mcp_server.py` : 6 outils MCP ajoutés au catalogue existant
+  (patch chirurgical, 15 outils précédents intacts → 21 outils total)
+
+### Dispatcheur NLU — patterns TaHoma (router/dispatcher.py v3)
+
+- "ouvre les volets" -> shutters.open_all
+- "ferme la chambre de fabian" -> shutters.close {name: Chambre Fabian}
+- "ferme la baie vitrée 2" -> shutters.close {name: Baie 2} (synonyme toléré)
+- "ouvre à moitié les volets du bureau" -> shutters.set_position
+  {percent: 50, name: Bureau}
+- "mets les volets à 30%" -> shutters.set_position {percent: 30} (global)
+- Garde-fous : vocabulaire de pièces exigé ("ferme la télé" ne matche
+  pas), tests orchestrateur en dry-run (aucune action réelle)

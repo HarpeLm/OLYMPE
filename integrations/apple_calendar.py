@@ -11,8 +11,8 @@ Les événements créés par OLYMPE vont dans le calendrier CALENDAR_NAME
 (créé automatiquement dans l'app Calendrier Apple, visible et syncable).
 
 Test silencieux :
-    python integrations/calendar.py            lecture seule
-    python integrations/calendar.py --create   crée un événement de test
+    python integrations/apple_calendar.py            lecture seule
+    python integrations/apple_calendar.py --create   crée un événement de test
 """
 import re
 from datetime import datetime, timedelta
