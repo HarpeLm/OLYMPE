@@ -3,7 +3,7 @@
     "olympe": {
       "transport": "stdio",
       "command": "/Users/harpepluie/O.L.Y/OLYMPE/.venv/bin/python",
-      "args": ["/Users/harpepluie/O.L.Y/OLYMPE/agent/mcp_server.py"],
+      "args": ["/Users/harpepluie/MJ/agent/mcp_server.py"],
       "enabled": true,
       "timeout": 30
     }
