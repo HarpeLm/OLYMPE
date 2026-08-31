@@ -389,15 +389,11 @@ class VoicePipeline:
             return None
 
         path_str, func_name = handler.split("::", 1)
-        path = ROOT / path_str
-        if not path.exists():
-            return None
+        mod_name = path_str.replace("/", ".").removesuffix(".py")
 
         try:
-            import importlib.util
-            spec = importlib.util.spec_from_file_location("handler_module", path)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
+            import importlib
+            module = importlib.import_module(mod_name)
             func = getattr(module, func_name)
             return str(func(**result.get("slots", {})))
         except Exception as e:
