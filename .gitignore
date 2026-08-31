@@ -39,3 +39,4 @@ data/memory/*.db
 *.bak
 models/*.gguf
 config/tahoma.yaml
+data/audio/

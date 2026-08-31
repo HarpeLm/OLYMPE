@@ -1,7 +1,5 @@
-"""Dispatcheur NLU léger — Palier 4 (v3).
-Pré-filtre regex pour les intents évidentes, court-circuite le LLM.
-v3 : supporte "à moitié / partiellement / entre-ouvert" et tolère
-les synonymes "baie vitrée N" -> "Baie N" (vraie étiquette TaHoma)."""
+"""Dispatcheur NLU léger — Palier 4 (v5).
+v5 : corrige 3 bugs (nom de pièce trop court, chiffres sans %, fausses détections)."""
 import re
 from typing import Optional
 
@@ -18,14 +16,23 @@ class DispatchResult:
 
 
 ROOM_WORDS = ("chambre", "cuisine", "bureau", "baie", "panoramique",
-              "salon", "fabian", "amis", "boubou")
+              "salon", "fabian", "amis", "boubou", "g\u00e9")
 
-# Synonymes à nettoyer dans le nom extrait ("baie vitrée 2" -> "baie 2")
 SYNONYM_STRIP = [r"\bvitr[eé]e\b"]
 
-# Expressions -> pourcentage
-HALF_EXPRS = [r"\bà moitié\b", r"\bpartiellement\b",
-              r"\bentre[- ]ouvert[s]?\b", r"\bmi[- ]partie\b"]
+# Nombres en lettres -> chiffres (français, 0-100)
+WORD_TO_NUM = {
+    "zero": 0, "un": 1, "une": 1, "deux": 2, "trois": 3, "quatre": 4,
+    "cinq": 5, "six": 6, "sept": 7, "huit": 8, "neuf": 9, "dix": 10,
+    "onze": 11, "douze": 12, "treize": 13, "quatorze": 14,
+    "quinze": 15, "seize": 16, "dix-sept": 17, "dix-huit": 18,
+    "dix-neuf": 19, "vingt": 20, "trente": 30, "quarante": 40,
+    "cinquante": 50, "soixante": 60, "soixante-dix": 70,
+    "septante": 70, "quatre-vingts": 80, "quatre-vingt": 80,
+    "huitante": 80, "quatre-vingt-dix": 90, "nonante": 90,
+    "cent": 100,
+    "moitie": 50, "moiti\u00e9": 50,
+}
 
 
 def _clean_name(name: str) -> str:
@@ -36,69 +43,106 @@ def _clean_name(name: str) -> str:
     return name.title()
 
 
-def _detect_percent(t: str) -> Optional[int]:
-    """Détecte un pourcentage explicite OU 'à moitié'."""
-    for pat in HALF_EXPRS:
-        if re.search(pat, t):
-            return 50
+def _parse_percent(t: str):
+    """Détecte un pourcentage : exige % ou 'pour cent' (pas juste un chiffre)."""
+    # Nombres en lettres + "pour cent" / "pourcent" / "%"
+    m = re.search(r"\b([a-z\u00e9\u00e8\u00ea\u00e0\u00fb\u00f9-]+)\s*(?:pour\s*cent|pourcent|%)\b", t)
+    if m:
+        word = m.group(1).lower()
+        if "-" in word:
+            parts = word.split("-")
+            total = 0
+            for p in parts:
+                if p in WORD_TO_NUM:
+                    total += WORD_TO_NUM[p]
+            if total:
+                return total, m.group(0)
+        elif word in WORD_TO_NUM:
+            return WORD_TO_NUM[word], m.group(0)
+
+    # Expression "à moitié"
+    if re.search(r"\b\u00e0 moiti\u00e9\b|\bpartiellement\b|"
+                 r"\bentre[- ]ouvert[s]?\b|\bmi[- ]partie\b", t):
+        return 50, ""
+
+    # Chiffres arabes — exige % (pas juste un chiffre seul)
     m = re.search(r"\b(\d{1,3})\s*%", t)
     if m:
-        return int(m.group(1))
+        return int(m.group(1)), m.group(0)
+
+    return None, None
+
+
+def _extract_room(text_after_action: str) -> Optional[str]:
+    """Extrait un nom de pièce complet (incluant le nom propre/numéro)."""
+    # Mots qui terminent l'extraction
+    stop_words = {"pour", "cent", "pourcent", "%",
+                  "degr\u00e9", "degre", "environ", "\u00e0"}
+    stop_words.update(WORD_TO_NUM.keys())
+    # Articles à ignorer
+    articles = {"de", "du", "des", "le", "la", "l", "les", "et"}
+
+    for w in ROOM_WORDS:
+        idx = text_after_action.find(w)
+        if idx >= 0:
+            chunk = text_after_action[idx:]
+            parts = chunk.split()
+            name_parts = []
+            for p in parts:
+                clean = re.sub(r"[^a-z\u00e9\u00e8\u00ea\u00e0\u00fb\u00f90-9-]", "", p.lower())
+                if not clean:
+                    continue
+                if clean in stop_words:
+                    break
+                if clean in articles:
+                    continue  # sauter tous les connecteurs (de, la, et...)
+                if len(name_parts) < 4:
+                    name_parts.append(p)
+            if name_parts:
+                return _clean_name(" ".join(name_parts))
     return None
+
+
+def _has_shutter_context(t: str) -> bool:
+    """Vérifie que la phrase parle bien de volets (mot-clé ou pièce connue)."""
+    if "volet" in t:
+        return True
+    return any(w in t for w in ROOM_WORDS)
 
 
 def dispatch(text: str) -> Optional[DispatchResult]:
     t = text.lower().strip()
-    is_shutter = "volet" in t or any(w in t for w in ROOM_WORDS)
 
-    if not is_shutter:
+    # Garde-fou : la phrase doit parler de volets
+    if not _has_shutter_context(t):
         return None
 
-    # 0) Action (ouvre/ferme) + position ?
     m_action = re.search(r"\b(ouvre|ouvrir|ferme|fermer|mets|mettre|baisse|monte)\b", t)
     if not m_action:
         return None
     action_word = m_action.group(1)
 
-    # 1) Position (pourcentage ou "à moitié")
-    percent = _detect_percent(t)
+    rest = t[m_action.end():]
 
-    if percent is not None:
-        # On cherche un nom de pièce
-        rest = t[m_action.end():]
-        rest = re.sub(r"\b(le|la|l'|les|de|du|des)\b", " ", rest)
-        rest = re.sub(r"\bvolets?\b", " ", rest)
-        rest = re.sub(r"\b(à|au|à\s+)?moitié\b|\bpartiellement\b|"
-                      r"\bentre[- ]ouvert[s]?\b|\bmi[- ]partie\b", " ", rest)
-        rest = re.sub(r"\b\d{1,3}\s*%?\b", " ", rest)
-        name = _clean_name(" ".join(rest.split()))
-        if not name:
-            # "mets les volets à 50%" sans nom -> tous les volets
-            return DispatchResult("shutters.set_position",
-                                  {"percent": percent}, 1.0)
-        # Un volet + position -> set_shutter_position (nouvelle action)
+    # Position (pourcentage) ?
+    percent, _ = _parse_percent(t)
+
+    # Extraire la pièce
+    room = _extract_room(rest)
+
+    if percent is not None and room:
         return DispatchResult("shutters.set_position",
-                              {"name": name, "percent": percent}, 1.0)
+                              {"name": room, "percent": percent}, 1.0)
 
-    # 2) Nom de pièce présent -> volet spécifique
-    room_name = None
-    for w in ROOM_WORDS:
-        if w in t:
-            # Extraire autour du mot-clé
-            idx = t.find(w)
-            chunk = t[idx:idx+40]
-            # Prendre le mot + éventuel numéro ou qualificatif
-            m = re.match(r"([a-zéèêàûù]+(?:\s+[a-zéèêàûù0-9]+)*)", chunk)
-            if m:
-                room_name = _clean_name(m.group(1))
-                break
+    if percent is not None and not room:
+        return DispatchResult("shutters.set_position",
+                              {"percent": percent}, 1.0)
 
-    if room_name:
+    if room:
         action = "open" if action_word in ("ouvre", "ouvrir", "monte") else "close"
         return DispatchResult(f"shutters.{action}",
-                              {"name": room_name}, 1.0)
+                              {"name": room}, 1.0)
 
-    # 3) Pas de nom de pièce -> tous les volets
     if action_word in ("ouvre", "ouvrir", "monte"):
         return DispatchResult("shutters.open_all", {}, 1.0)
     return DispatchResult("shutters.close_all", {}, 1.0)
@@ -108,19 +152,17 @@ if __name__ == "__main__":
     test_cases = [
         "Ouvre les volets",
         "Ferme tous les volets",
-        "Ouvre le volet de la cuisine",
         "Ferme la chambre de fabian",
-        "Ferme baie 1",
-        "Ferme la baie vitrée 2",
-        "Ouvre à moitié les volets du bureau",
-        "Mets les volets à 50%",
-        "Baisse les volets à 30%",
-        "Quelle est la météo ?",
-        "Ferme la télé",
+        "Ferme la baie vitr\u00e9e 2",
+        "Ouvre les volets de la chambre de fabian \u00e0 trente pour cent",
+        "Mets la cuisine \u00e0 50%",
+        "Ouvre \u00e0 moiti\u00e9 les volets du bureau",
+        "Ferme la t\u00e9l\u00e9",
+        "Quelle est la m\u00e9t\u00e9o ?",
     ]
     for text in test_cases:
         result = dispatch(text)
         if result:
-            print(f"✅ '{text}' -> {result.to_dict()}")
+            print(f"\u2705 '{text}' -> {result.to_dict()}")
         else:
-            print(f"❌ '{text}' -> pas d'intent")
+            print(f"\u274c '{text}' -> pas d'intent")
