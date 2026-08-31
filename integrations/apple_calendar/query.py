@@ -1,77 +1,10 @@
-"""
-Intégrations système OLYMPE — Palier 7
-Calendrier Apple natif macOS via AppleScript (zéro API tierce).
-
-Handlers déterministes pour le dispatcher :
-  - get_next_event()
-  - get_events_today()
-  - create_event(title, date, time)
-
-Les événements créés par OLYMPE vont dans le calendrier CALENDAR_NAME
-(créé automatiquement dans l'app Calendrier Apple, visible et syncable).
-
-Test silencieux :
-    python integrations/apple_calendar.py            lecture seule
-    python integrations/apple_calendar.py --create   crée un événement de test
-"""
 import re
 from datetime import datetime, timedelta
+
 from integrations._core.applescript_runner import run_applescript, _as_literal
-
-CALENDAR_NAME = "Olympe"
-
-DAYS_FR = {"lundi": 0, "mardi": 1, "mercredi": 2, "jeudi": 3,
-           "vendredi": 4, "samedi": 5, "dimanche": 6}
-
-
-
-
-
-def ensure_calendar():
-    script = f'''
-    tell application "Calendar"
-        if not (exists calendar "{CALENDAR_NAME}") then
-            make new calendar with properties {{name:"{CALENDAR_NAME}"}}
-        end if
-    end tell
-    '''
-    run_applescript(script)
-
-
-def parse_date_fr(text):
-    """aujourd'hui / demain / vendredi / 28/08 -> datetime.date"""
-    today = datetime.now().date()
-    if not text:
-        return today
-    t = text.strip().lower()
-    if "aujourd" in t:
-        return today
-    if "après-demain" in t:
-        return today + timedelta(days=2)
-    if "demain" in t:
-        return today + timedelta(days=1)
-    for name, idx in DAYS_FR.items():
-        if name in t:
-            delta = (idx - today.weekday()) % 7 or 7
-            return today + timedelta(days=delta)
-    m = re.search(r"(\d{1,2})[/.](\d{1,2})(?:[/.](\d{4}))?", t)
-    if m:
-        d, mo = int(m.group(1)), int(m.group(2))
-        y = int(m.group(3) or today.year)
-        try:
-            return datetime(y, mo, d).date()
-        except ValueError:
-            return today
-    return today
-
-
-def parse_time_fr(text):
-    if not text:
-        return 9, 0
-    m = re.search(r"(\d{1,2})\s*[h:]\s*(\d{2})?", text.strip().lower())
-    if m:
-        return int(m.group(1)), int(m.group(2) or 0)
-    return 9, 0
+from integrations.apple_calendar._helpers import (
+    CALENDAR_NAME, DAYS_FR, ensure_calendar, parse_date_fr, parse_time_fr,
+)
 
 
 def get_next_event():
@@ -127,39 +60,6 @@ def get_events_today():
     return eventList as string
     '''
     return run_applescript(script)
-
-
-def create_event(title=None, date=None, time=None, **_):
-    ensure_calendar()
-    d = parse_date_fr(date)
-    h, mi = parse_time_fr(time)
-    title = (title or "Événement OLYMPE").replace('"', "'").replace("\\", "")
-    script = f'''
-    tell application "Calendar"
-        set d to current date
-        set year of d to {d.year}
-        set month of d to {d.month}
-        set day of d to {d.day}
-        set hours of d to {h}
-        set minutes of d to {mi}
-        set seconds of d to 0
-        make new event at end of events of calendar "{CALENDAR_NAME}" with properties {{summary:{_as_literal(title)}, start date:d, end date:d + (30 * minutes)}}
-    end tell
-    '''
-    run_applescript(script)
-    return f"C'est noté : {title}, le {d.strftime('%d/%m')} à {h:02d}h{mi:02d}."
-
-
-if __name__ == "__main__":
-    import sys
-    print("Prochain événement :", get_next_event())
-    print()
-    print("Aujourd'hui :")
-    print(get_events_today())
-    if "--create" in sys.argv:
-        print()
-        print(create_event(title="Test OLYMPE", date="demain", time="9h00"))
-        print("Vérifie dans l'app Calendrier : calendrier 'Olympe'.")
 
 
 def next_event(**_):
@@ -251,28 +151,3 @@ def search(query=None, **_):
     return eventList as string
     '''
     return run_applescript(script)
-
-
-def create_recurring(title=None, date=None, recurrence=None, **_):
-    ensure_calendar()
-    d = parse_date_fr(date)
-    freq = {"yearly": "FREQ=YEARLY", "weekly": "FREQ=WEEKLY",
-            "monthly": "FREQ=MONTHLY"}.get(recurrence, "FREQ=YEARLY")
-    title = (title or "Événement OLYMPE").replace('"', "'").replace("\\", "")
-    script = f'''
-    tell application "Calendar"
-        set d to current date
-        set year of d to {d.year}
-        set month of d to {d.month}
-        set day of d to {d.day}
-        set hours of d to 9
-        set minutes of d to 0
-        set seconds of d to 0
-        set newEvent to make new event at end of events of calendar "{CALENDAR_NAME}" with properties {{summary:{_as_literal(title)}, start date:d, end date:d + (30 * minutes)}}
-        try
-            set recurrence of newEvent to "{freq}"
-        end try
-    end tell
-    '''
-    run_applescript(script)
-    return f"C'est noté : {title}, récurrent ({recurrence or 'yearly'})."
