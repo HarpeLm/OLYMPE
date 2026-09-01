@@ -17,7 +17,7 @@ CONFIG_PATH = ROOT / "config" / "models.yaml"
 THINK_BLOCK = re.compile(r"<\s*think\b.*?(?:<\s*/\s*think\s*>|$)", re.IGNORECASE | re.DOTALL)
 ANY_TAG = re.compile(r"<[^>]*>")
 
-SYSTEM_PROMPT = """Tu es OLYMPE, un assistant vocal local qui tourne sur un MacBook Air M5.
+SYSTEM_PROMPT = """Tu es MJ, un assistant vocal local qui tourne sur un MacBook Air M5.
 Tu réponds en français, de manière concise.
 Tes réponses sont destinées à être lues à voix haute.
 Tu privilégies des phrases courtes et naturelles."""

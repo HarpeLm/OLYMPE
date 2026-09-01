@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 """
-Boucle vocale complète OLYMPE — Palier 6
+Boucle vocale complète MJ — Palier 6
 
 Orchestration : wake word -> bip -> STT -> dispatcheur -> [action | LLM + outils MCP] -> TTS
 
@@ -49,7 +49,7 @@ THINK_OPEN = "<" + "think>"
 THINK_CLOSE = "</" + "think>"
 
 SYSTEM_PROMPT = (
-    "Tu es OLYMPE, un assistant vocal local qui tourne sur le Mac de "
+    "Tu es MJ, un assistant vocal local qui tourne sur le Mac de "
     "l'utilisateur. Réponds en français, de façon concise et naturelle, "
     "en une ou deux phrases adaptées à une lecture à voix haute. "
     "Évite les listes, les tableaux et le formatage markdown. "

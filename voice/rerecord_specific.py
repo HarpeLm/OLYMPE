@@ -43,7 +43,7 @@ def main():
     print("=" * 60)
     print("\nConseils :")
     print("  - Parle à 15-20 cm du micro")
-    print("  - Prononce 'Olympe' clairement, voix posée")
+    print("  - Prononce 'MJ' clairement, voix posée")
     print("  - Chaque prise est vérifiée : si trop faible, on recommence")
     print("-" * 60)
     input("\nAppuie sur Entrée pour commencer (Ctrl+C pour annuler)...")
@@ -57,7 +57,7 @@ def main():
 
         while attempt < max_attempts:
             attempt += 1
-            print(f"  Prise {attempt}/{max_attempts} — Prononce 'Olympe' dans 1 seconde...")
+            print(f"  Prise {attempt}/{max_attempts} — Prononce 'MJ' dans 1 seconde...")
             sd.sleep(1000)
 
             audio = record_one()

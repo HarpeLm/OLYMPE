@@ -1,6 +1,6 @@
 """
 Import du dataset MASSIVE (Amazon) — sous-ensemble français
-Extrait uniquement les intents déjà présents dans la taxonomie OLYMPE.
+Extrait uniquement les intents déjà présents dans la taxonomie MJ.
 
 Licence MASSIVE : CC BY 4.0 (Amazon)
 Référence : FitzGerald et al., 2022, arXiv:2204.08582
@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-# Mapping intents MASSIVE -> intents OLYMPE
+# Mapping intents MASSIVE -> intents MJ
 INTENT_MAPPING = {
     # Musique
     "play_music": "play_music",
@@ -81,7 +81,7 @@ def parse_annot_utt(annot_utt):
 
 
 def normalize_weather_slots(slots):
-    """Normalise les slots météo MASSIVE vers le format OLYMPE."""
+    """Normalise les slots météo MASSIVE vers le format MJ."""
     normalized = {}
     if "place_name" in slots:
         normalized["location"] = slots["place_name"]
@@ -161,7 +161,7 @@ def extract_and_filter(max_per_intent=30):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Import MASSIVE (français) pour OLYMPE"
+        description="Import MASSIVE (français) pour MJ"
     )
     parser.add_argument(
         "--max-per-intent", type=int, default=30,
@@ -200,7 +200,7 @@ def main():
     print(f"\nRépartition par intent :")
     for intent, count in sorted(intent_counts.items(), key=lambda x: -x[1]):
         print(f"  {intent:25s} : {count}")
-    print(f"\nIntents OLYMPE couverts : {len(intent_counts)}")
+    print(f"\nIntents MJ couverts : {len(intent_counts)}")
     print(f"\nAttribution : dataset MASSIVE, Amazon, licence CC BY 4.0")
     print(f"Référence : FitzGerald et al., 2022, arXiv:2204.08582")
 

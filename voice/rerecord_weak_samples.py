@@ -65,7 +65,7 @@ def main():
     print("\n" + "-" * 60)
     print("Conseils pour un bon niveau :")
     print("  - Parle à 15-20 cm du micro, pas plus loin")
-    print("  - Prononce 'Olympe' d'une voix claire et posée")
+    print("  - Prononce 'MJ' d'une voix claire et posée")
     print("  - Évite les bruits de fond (ventilo, musique, rue)")
     print("  - Chaque prise est vérifiée : si trop faible, on recommence")
     print("-" * 60)
@@ -81,7 +81,7 @@ def main():
 
         while attempt < max_attempts:
             attempt += 1
-            print(f"  Prise {attempt}/{max_attempts} — Prononce 'Olympe' dans 1 seconde...")
+            print(f"  Prise {attempt}/{max_attempts} — Prononce 'MJ' dans 1 seconde...")
             sd.sleep(1000)
 
             audio = record_one()

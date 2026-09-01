@@ -1,5 +1,5 @@
 """Test voix de bout en bout : parle -> STT -> orchestre -> TTS.
-8 s d'enregistrement automatique, puis Olympe répond à voix haute."""
+8 s d'enregistrement automatique, puis MJ répond à voix haute."""
 import json
 import time
 import urllib.request

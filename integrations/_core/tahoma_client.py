@@ -52,7 +52,7 @@ class TaHomaClient:
     def execute(self, device_url, command, parameters=None):
         """Envoie une commande brute à un équipement (POST /exec/apply)."""
         payload = {
-            "label": f"OLYMPE {command}",
+            "label": f"MJ {command}",
             "actions": [{
                 "deviceURL": device_url,
                 "commands": [{"name": command,

@@ -127,7 +127,7 @@ class VoicePipeline(CommandsMixin):
 
     def run(self):
         print("\n" + "=" * 60)
-        print("BOUCLE VOCALE OLYMPE (Palier 6 — tool-calling MCP)")
+        print("BOUCLE VOCALE MJ (Palier 6 — tool-calling MCP)")
         print("Dis le mot d'activation, puis ta commande après le bip.")
         print("Ctrl+C pour quitter.")
         print("=" * 60 + "\n")

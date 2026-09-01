@@ -39,7 +39,7 @@ def build_system_prompt():
     signatures.append("general_question")
 
     return (
-        "Tu es le dispatcheur NLU d'OLYMPE, un assistant vocal local. "
+        "Tu es le dispatcheur NLU d'MJ, un assistant vocal local. "
         "Analyse la requete et reponds UNIQUEMENT avec un objet JSON valide, "
         "sans aucun texte autour, au format : "
         '{"intent": "<nom>", "slots": {"<cle>": "<valeur>"}}. '

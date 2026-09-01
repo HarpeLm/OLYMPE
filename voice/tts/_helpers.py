@@ -19,7 +19,7 @@ STT/TTS chargés autour de chaque interaction).
 Usage module :
     from voice.tts import TTSEngine
     tts = TTSEngine()
-    tts.speak("Bonjour, je suis Olympe.")
+    tts.speak("Bonjour, je suis MJ.")
 
 Usage CLI :
     python voice/tts.py "Bonjour" --voice serena

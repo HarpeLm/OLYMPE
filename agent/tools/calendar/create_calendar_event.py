@@ -2,7 +2,7 @@
 
 TOOL = {
     "name": "create_calendar_event",
-    "description": "Crée un événement dans le calendrier Olympe (Apple Calendar).",
+    "description": "Crée un événement dans le calendrier MJ (Apple Calendar).",
     "inputSchema": {
         "type": "object",
         "properties": {

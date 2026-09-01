@@ -1,5 +1,5 @@
 """
-Serveur MCP OLYMPE — adaptateur mince.
+Serveur MCP MJ — adaptateur mince.
 Toute la logique des outils vit dans agent/tools/.
 Ce serveur expose juste le catalogue via MCP et route les appels."""
 import sys

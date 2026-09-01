@@ -71,7 +71,7 @@ device_url = target["deviceURL"]
 def execute_action(cmd_name):
     """Envoie une commande à un volet."""
     payload = {
-        "label": f"OLYMPE test {cmd_name}",
+        "label": f"MJ test {cmd_name}",
         "actions": [{
             "deviceURL": device_url,
             "commands": [{"name": cmd_name, "parameters": []}]

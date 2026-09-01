@@ -1,4 +1,4 @@
-# OLYMPE
+# MJ
 
 Assistant vocal local sur Apple Silicon — zéro app tierce, zéro modèle codé en dur.
 
@@ -45,4 +45,4 @@ Assistant vocal local sur Apple Silicon — zéro app tierce, zéro modèle cod�
 - DECISIONS.md — journal des décisions techniques
 - TODO.md — état d'avancement des paliers
 - olympe-roadmap-complete.docx — roadmap des 7 paliers
-- OLYMPE_Palier8_Controle_Apps.docx — architecture contrôle des apps macOS
+- MJ_Palier8_Controle_Apps.docx — architecture contrôle des apps macOS

@@ -1,5 +1,5 @@
 """
-Intégrations système OLYMPE — Palier 8a
+Intégrations système MJ — Palier 8a
 Finder macOS via AppleScript et mdfind (Spotlight).
 
 Handlers déterministes pour le dispatcher :

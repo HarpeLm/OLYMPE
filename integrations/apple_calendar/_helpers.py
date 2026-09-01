@@ -3,7 +3,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 """
-Intégrations système OLYMPE — Palier 7
+Intégrations système MJ — Palier 7
 Calendrier Apple natif macOS via AppleScript (zéro API tierce).
 
 Handlers déterministes pour le dispatcher :
@@ -11,7 +11,7 @@ Handlers déterministes pour le dispatcher :
   - get_events_today()
   - create_event(title, date, time)
 
-Les événements créés par OLYMPE vont dans le calendrier CALENDAR_NAME
+Les événements créés par MJ vont dans le calendrier CALENDAR_NAME
 (créé automatiquement dans l'app Calendrier Apple, visible et syncable).
 
 Test silencieux :
@@ -22,7 +22,7 @@ import re
 from datetime import datetime, timedelta
 from integrations._core.applescript_runner import run_applescript, _as_literal
 
-CALENDAR_NAME = "Olympe"
+CALENDAR_NAME = "MJ"
 
 DAYS_FR = {"lundi": 0, "mardi": 1, "mercredi": 2, "jeudi": 3,
            "vendredi": 4, "samedi": 5, "dimanche": 6}

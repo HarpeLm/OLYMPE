@@ -1,5 +1,5 @@
 """
-Enregistrement d'échantillons pour entraîner le wake word "Olympe"
+Enregistrement d'échantillons pour entraîner le wake word "MJ"
 Usage : python voice/record_wake_samples.py
 """
 import sounddevice as sd
@@ -15,10 +15,10 @@ OUTPUT_DIR = Path("voice/wake_samples")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 print("=" * 60)
-print("Enregistrement d'échantillons pour le wake word 'Olympe'")
+print("Enregistrement d'échantillons pour le wake word 'MJ'")
 print("=" * 60)
 print(f"\nTu vas enregistrer 15 échantillons de 1.5 secondes.")
-print("À chaque signal, prononce 'Olympe' clairement.")
+print("À chaque signal, prononce 'MJ' clairement.")
 print("Varie légèrement l'intonation et la vitesse entre chaque essai.")
 print("\nAppuie sur Entrée pour commencer, ou Ctrl+C pour annuler.\n")
 
@@ -31,7 +31,7 @@ except KeyboardInterrupt:
 for i in range(15):
     print(f"\n[{i+1}/15] Prépare-toi...")
     time.sleep(1)
-    print("🎤 PARLE MAINTENANT : 'Olympe'")
+    print("🎤 PARLE MAINTENANT : 'MJ'")
     
     # Enregistrement
     audio = sd.rec(

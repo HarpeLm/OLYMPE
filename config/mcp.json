@@ -2,7 +2,7 @@
   "servers": {
     "olympe": {
       "transport": "stdio",
-      "command": "/Users/harpepluie/O.L.Y/OLYMPE/.venv/bin/python",
+      "command": "/Users/harpepluie/MJ/.venv/bin/python",
       "args": ["/Users/harpepluie/MJ/agent/mcp_server.py"],
       "enabled": true,
       "timeout": 30

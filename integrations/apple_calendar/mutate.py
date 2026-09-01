@@ -11,7 +11,7 @@ def create_event(title=None, date=None, time=None, **_):
     ensure_calendar()
     d = parse_date_fr(date)
     h, mi = parse_time_fr(time)
-    title = (title or "Événement OLYMPE").replace('"', "'").replace("\\", "")
+    title = (title or "Événement MJ").replace('"', "'").replace("\\", "")
     script = f'''
     tell application "Calendar"
         set d to current date
@@ -33,7 +33,7 @@ def create_recurring(title=None, date=None, recurrence=None, **_):
     d = parse_date_fr(date)
     freq = {"yearly": "FREQ=YEARLY", "weekly": "FREQ=WEEKLY",
             "monthly": "FREQ=MONTHLY"}.get(recurrence, "FREQ=YEARLY")
-    title = (title or "Événement OLYMPE").replace('"', "'").replace("\\", "")
+    title = (title or "Événement MJ").replace('"', "'").replace("\\", "")
     script = f'''
     tell application "Calendar"
         set d to current date

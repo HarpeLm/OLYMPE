@@ -1,5 +1,5 @@
 """
-Intégrations système OLYMPE — commandes macOS.
+Intégrations système MJ — commandes macOS.
 
 Handlers déterministes pour le dispatcher :
 - open_app(app_name) : ouvre une application via open -a (SAFE)

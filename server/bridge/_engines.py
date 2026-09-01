@@ -40,7 +40,7 @@ def chat_response(text):
             json={
                 "model": "local-model",
                 "messages": [
-                    {"role": "system", "content": "Tu es Olympe, un assistant vocal local. Réponds brièvement et naturellement en français."},
+                    {"role": "system", "content": "Tu es MJ, un assistant vocal local. Réponds brièvement et naturellement en français."},
                     {"role": "user", "content": text}
                 ],
                 "max_tokens": 150,

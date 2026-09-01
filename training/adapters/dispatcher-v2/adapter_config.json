@@ -1,9 +1,9 @@
 {
-    "adapter_path": "/Users/harpepluie/O.L.Y/OLYMPE/training/adapters/dispatcher-v2",
+    "adapter_path": "/Users/harpepluie/MJ/training/adapters/dispatcher-v2",
     "batch_size": 2,
     "clear_cache_threshold": 0,
-    "config": "/Users/harpepluie/O.L.Y/OLYMPE/training/lora_dispatcher.yaml",
-    "data": "/Users/harpepluie/O.L.Y/OLYMPE/data/dispatcher/dataset",
+    "config": "/Users/harpepluie/MJ/training/lora_dispatcher.yaml",
+    "data": "/Users/harpepluie/MJ/data/dispatcher/dataset",
     "fine_tune_type": "lora",
     "grad_accumulation_steps": 1,
     "grad_checkpoint": false,

@@ -98,7 +98,7 @@ class WakeWordEngine:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Test du wake word OLYMPE")
+        description="Test du wake word MJ")
     parser.add_argument("--threshold", type=float, default=None,
                         help="Seuil de détection (défaut : valeur config)")
     args = parser.parse_args()

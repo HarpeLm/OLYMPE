@@ -3,7 +3,7 @@ from voice.tts.engine import TTSEngine
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Synthese vocale OLYMPE")
+    parser = argparse.ArgumentParser(description="Synthese vocale MJ")
     parser.add_argument("text", nargs="?", help="Texte a synthesizer")
     parser.add_argument("--voice", default=None,
                         help="Voix predéfinie (defaut: valeur config/models.yaml)")

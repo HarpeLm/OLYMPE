@@ -1,6 +1,6 @@
 roles:
   chat:
-    repo: models/qwen3-8b-q4_k_m.gguf
+    repo: mlx-community/Qwen3-8B-4bit
     quantization: 4-bit
     notes: Choix Palier 1 - voir DECISIONS.md
   dispatcher:
@@ -14,7 +14,7 @@ roles:
     lang: French
     sample_rate: 16000
     hotwords:
-    - Olympe
+    - MJ
     - Tadej Pogačar
     - Pogačar
     notes: Qwen3-ASR validé Palier 5 - 1.61 Go RAM, français supporté
@@ -30,9 +30,9 @@ roles:
     model: hey_jarvis
     threshold: 0.5
     inference_framework: onnx
-    notes: Provisoire - voir DECISIONS.md pour le plan d'entraînement Olympe
+    notes: Provisoire - voir DECISIONS.md pour le plan d'entraînement MJ
 server:
-  engine: llama-cpp
+  engine: vllm-mlx
   host: 127.0.0.1
   port: 8000
   reasoning_parser: qwen3

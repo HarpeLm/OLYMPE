@@ -4,7 +4,7 @@ from voice.stt.engine import STTEngine
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Transcription vocale OLYMPE")
+    parser = argparse.ArgumentParser(description="Transcription vocale MJ")
     parser.add_argument("--duration", type=float,
                         help="Duree de capture en secondes (mode one-shot)")
     parser.add_argument("--file", "-f", help="Fichier audio a transcrire")

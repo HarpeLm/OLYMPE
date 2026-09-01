@@ -2,7 +2,7 @@
 # Toute action d'écriture/suppression passe par is_allowed() avant exécution
 
 writable:
-  - ~/O.L.Y/OLYMPE/data
+  - ~/MJ/data
   - ~/Desktop
   - ~/Downloads
 
@@ -10,10 +10,9 @@ readable:
   - ~/Documents
   - ~/Downloads
   - ~/Desktop
-  - ~/O.L.Y
 
 never_touch:
-  - ~/O.L.Y/OLYMPE/.venv
-  - ~/O.L.Y/OLYMPE/.git
+  - ~/MJ/.venv
+  - ~/MJ/.git
   - /System
   - /Library

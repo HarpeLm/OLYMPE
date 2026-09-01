@@ -2,7 +2,7 @@ from voice.pipeline._pipeline import VoicePipeline
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Boucle vocale OLYMPE")
+    parser = argparse.ArgumentParser(description="Boucle vocale MJ")
     parser.add_argument(
         "--listen-duration",
         type=float,

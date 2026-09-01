@@ -1,5 +1,5 @@
 """
-Mémoire persistante OLYMPE — SQLite (roadmap §8, Palier 6)
+Mémoire persistante MJ — SQLite (roadmap §8, Palier 6)
 
 Deux tables :
   facts : faits explicites (préférences, infos perso), gardés indéfiniment
@@ -100,13 +100,13 @@ class Memory:
         turns = self.recent_turns(limit=limit_turns)
         if not facts and not turns:
             return ""
-        lines = ["MÉMOIRE OLYMPE :"]
+        lines = ["MÉMOIRE MJ :"]
         if facts:
             lines.append("Faits connus sur l'UTILISATEUR (ces faits parlent de lui, pas de toi) :")
             lines += [f"- [{f['category']}] l'utilisateur a dit : « {f['content']} »" for f in facts]
         if turns:
             lines.append("Derniers échanges :")
-            lines += [f"- L'utilisateur a dit : {t['user']} / OLYMPE a répondu : {t['assistant']}" for t in turns]
+            lines += [f"- L'utilisateur a dit : {t['user']} / MJ a répondu : {t['assistant']}" for t in turns]
         return "\n".join(lines)
 
     def close(self):

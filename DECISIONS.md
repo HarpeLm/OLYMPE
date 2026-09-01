@@ -1,4 +1,4 @@
-# OLYMPE — Journal des décisions techniques
+# MJ — Journal des décisions techniques
 
 Ce fichier trace les choix d'architecture et de modèles au fil des paliers,
 avec le contexte qui a mené à chaque décision. Objectif : ne jamais avoir à
@@ -182,17 +182,17 @@ Qwen3-ASR qui :
 ## 2026-08-26 — Palier 5 : wake word provisoire (hey_jarvis)
 
 **Décision : `hey_jarvis` (pré-entraîné openWakeWord) comme wake word de
-travail, entraînement d'"Olympe" reporté post-P5**
+travail, entraînement d'"MJ" reporté post-P5**
 
 ### Ce qui est conservé pour l'entraînement futur
 
-15 échantillons réels de "Olympe" enregistrés et validés dans
+15 échantillons réels de "MJ" enregistrés et validés dans
 `voice/wake_samples/` (WAV 16 kHz, mono, 16-bit, 1.5s chacun).
 
-### Plan d'entraînement "Olympe" (post-P5)
+### Plan d'entraînement "MJ" (post-P5)
 
 1. Utiliser le notebook Colab officiel openWakeWord
-2. Générer des milliers d'échantillons synthétiques de "Olympe" via TTS
+2. Générer des milliers d'échantillons synthétiques de "MJ" via TTS
 3. Inclure les 15 échantillons réels comme données positives
 4. Exporter le modèle entraîné dans `voice/wake_models/olympe.onnx`
 5. Remplacer UNE ligne dans `config/models.yaml`
@@ -349,7 +349,7 @@ Retrain quand inference_log.jsonl aura ~200 phrases réelles nouvelles
 ## 2026-08-28 — Palier 7 : Calendrier Apple déterministe (création/lecture/dispo)
 
 **Décision : intents calendrier exécutés en déterministe via AppleScript
-natif (integrations/calendar.py), dans un calendrier dédié « Olympe »
+natif (integrations/calendar.py), dans un calendrier dédié « MJ »
 créé automatiquement dans l'app Calendrier. Zéro API tierce.**
 
 ### 7 handlers
@@ -582,13 +582,13 @@ Validé de bout en bout : copie vers Downloads, tags natifs xattr avec casse pr�
 
 ---
 
-## 2026-08-29 — Wake word « Olympe » : leçon de l'expérimentation CNN maison (Palier 5)
+## 2026-08-29 — Wake word « MJ » : leçon de l'expérimentation CNN maison (Palier 5)
 
 **Décision : retour au pipeline officiel openWakeWord ; le CNN maison est abandonné.**
 
 ### Contexte
 
-Tentative d'entraîner un wake word « Olympe » avec un CNN minuscule (~1 Mo,
+Tentative d'entraîner un wake word « MJ » avec un CNN minuscule (~1 Mo,
 2 conv + 1 dense) en MLX, directement sur le Mac, sur un dataset de
 ~285 positifs / ~560 négatifs (réels + synthétiques Qwen3-TTS + augmentation).
 
@@ -611,7 +611,7 @@ Tentative d'entraîner un wake word « Olympe » avec un CNN minuscule (~1 Mo,
 
 ### Conséquence
 
-Le wake word « Olympe » sera entraîné via le pipeline officiel openWakeWord
+Le wake word « MJ » sera entraîné via le pipeline officiel openWakeWord
 (notebook automatic_model_training), avec génération synthétique française
 (Qwen3-TTS) pour respecter la phonétique du mot. Conformément à la roadmap
 (Palier 5) : openWakeWord est la solution standard retenue.
@@ -719,3 +719,15 @@ le cœur reste Python (MLX n'a pas de bindings Rust).
   `parents[2]` (bugs CONFIG_PATH/ROOT trouvés dans tts, stt, bridge).
 - La régression par import simple a révélé 2 cassures préexistantes
   invisibles en production (CONFIG_PATH, Dispatcher).
+
+## 2026-09-02 — Renommage du projet : OLYMPE → MJ
+
+**Contexte** : Le projet a démarré sous le nom "OLYMPE" (visible dans les prompts, le calendrier macOS, les docs). Le dépôt Git et le dossier de travail s'appellent "MJ". Incohérence de nommage.
+
+**Décision** : Renommer uniformément en "MJ" partout (code, docs, prompts, hotwords STT).
+
+**Exceptions conservées** :
+- Le calendrier macOS s'appelle toujours "Olympe" (évite de perdre l'historique des événements)
+- Les hotwords STT dans `config/models.yaml` incluent toujours "Olympe" (transition progressive vers "MJ")
+
+**Impact** : Changement cosmétique, aucune fonctionnalité affectée. Le tool-calling et le serveur persistent fonctionnent identiquement.

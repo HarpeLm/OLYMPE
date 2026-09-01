@@ -1,4 +1,4 @@
-"""OLYMPE — point d'entrée unique (mode écrit).
+"""MJ — point d'entrée unique (mode écrit).
 Adaptateur mince : toute la logique des outils vit dans agent/tools/.
 Tape une phrase, tout est routé :
   [1] dispatcheur regex -> action TaHoma immédiate (0 LLM)
@@ -15,10 +15,12 @@ sys.path.insert(0, str(ROOT))
 
 from router.orchestrator import orchestrate
 from agent.tools import list_tools, run_tool
+import yaml
 
 LLM_URL = "http://127.0.0.1:8000/v1/chat/completions"
+MODEL_NAME = yaml.safe_load((ROOT / "config" / "models.yaml").read_text())["roles"]["chat"]["repo"]
 
-SYS = ("Tu es Olympe, assistant personnel local. Réponds brièvement, "
+SYS = ("Tu es MJ, assistant personnel local. Réponds brièvement, "
        "en français, comme à l'oral. Utilise les outils quand nécessaire.")
 
 # TOOLS au format OpenAI pour le LLM
@@ -26,7 +28,7 @@ TOOLS = [{"type": "function", "function": t} for t in list_tools()]
 
 
 def post_chat(messages):
-    payload = {"model": "local", "messages": messages, "tools": TOOLS,
+    payload = {"model": MODEL_NAME, "messages": messages, "tools": TOOLS,
                "max_tokens": 512, "temperature": 0.7}
     req = urllib.request.Request(
         LLM_URL, data=json.dumps(payload).encode(),
@@ -66,7 +68,7 @@ def llm_with_tools(text):
     return "(trop d'étapes, je m'arrête là)"
 
 
-print("OLYMPE (mj.py) — écris une phrase, 'q' pour quitter")
+print("MJ (mj.py) — écris une phrase, 'q' pour quitter")
 while True:
     try:
         phrase = input("\n> ").strip()

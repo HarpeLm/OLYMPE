@@ -1,5 +1,5 @@
 """
-Client de test : se connecte au serveur MCP OLYMPE en stdio,
+Client de test : se connecte au serveur MCP MJ en stdio,
 liste les outils et appelle get_current_datetime.
 """
 import asyncio
@@ -10,8 +10,8 @@ from mcp.client.stdio import stdio_client, StdioServerParameters
 
 async def main():
     params = StdioServerParameters(
-        command="/Users/harpepluie/O.L.Y/OLYMPE/.venv/bin/python",
-        args=["/Users/harpepluie/O.L.Y/OLYMPE/agent/mcp_server.py"],
+        command="/Users/harpepluie/MJ/.venv/bin/python",
+        args=["/Users/harpepluie/MJ/agent/mcp_server.py"],
     )
 
     async with stdio_client(params) as (read, write):

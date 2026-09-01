@@ -1,5 +1,5 @@
 """
-Lance le serveur d'inférence persistant pour OLYMPE.
+Lance le serveur d'inférence persistant pour MJ.
 Lit la configuration depuis /config/models.yaml.
 Adapté pour vllm-mlx 0.4.1 (options différentes de vLLM classique).
 """

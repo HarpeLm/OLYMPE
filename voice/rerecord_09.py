@@ -14,7 +14,7 @@ print("Réenregistrement ciblé : olympe_09.wav")
 print("=" * 60)
 print("\nConseils :")
 print("  - Parle à 15-20 cm du micro")
-print("  - Prononce 'Olympe' clairement, voix posée")
+print("  - Prononce 'MJ' clairement, voix posée")
 print("  - Chaque prise est vérifiée : si trop faible, on recommence")
 print("-" * 60)
 print("\nDémarrage dans 3 secondes...")
@@ -25,7 +25,7 @@ max_attempts = 3
 
 while attempt < max_attempts:
     attempt += 1
-    print(f"\nPrise {attempt}/{max_attempts} — Prononce 'Olympe' dans 1 seconde...")
+    print(f"\nPrise {attempt}/{max_attempts} — Prononce 'MJ' dans 1 seconde...")
     time.sleep(1)
 
     audio = sd.rec(int(DURATION * SAMPLE_RATE), samplerate=SAMPLE_RATE,

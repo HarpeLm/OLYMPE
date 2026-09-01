@@ -1,5 +1,5 @@
 """
-Diagnostic qualité des échantillons wake word "Olympe"
+Diagnostic qualité des échantillons wake word "MJ"
 Vérifie : format, durée, niveau sonore, détection de silence
 Usage : python voice/check_wake_samples.py
 """
@@ -56,7 +56,7 @@ def analyze_wav(filepath):
 
 def main():
     print("=" * 70)
-    print("Diagnostic qualité — échantillons wake word 'Olympe'")
+    print("Diagnostic qualité — échantillons wake word 'MJ'")
     print("=" * 70)
     
     files = sorted(POSITIVE_DIR.glob("olympe_*.wav"))

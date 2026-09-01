@@ -1,4 +1,4 @@
-"""Registre des outils OLYMPE.
+"""Registre des outils MJ.
 Chaque dossier est un domaine, chaque fichier (hors _*.py) expose
 un dict TOOL et une fonction run(args). Découverte récursive."""
 import importlib

@@ -1,5 +1,5 @@
 """
-Test de tool-calling pour OLYMPE — Palier 1
+Test de tool-calling pour MJ — Palier 1
 Compare la capacité de deux modèles à générer un appel d'outil structuré
 plutôt qu'une réponse texte libre.
 

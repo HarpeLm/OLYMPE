@@ -1,4 +1,4 @@
-# OLYMPE — État d'avancement
+# MJ — État d'avancement
 
 ## Complétés
 - [x] P0 : Setup du dépôt GitHub
@@ -23,7 +23,7 @@
   - [ ] Notes Apple
 
 ## À venir
-- [ ] Wake word "Olympe" personnalisé (remplacer hey_jarvis)
+- [ ] Wake word "MJ" personnalisé (remplacer hey_jarvis)
   - [ ] Générer échantillons négatifs (bruit, musique, conversations)
   - [ ] Script de mixage dataset
   - [ ] Entraînement (PC RTX 4070 Ti ou Colab)
