@@ -700,3 +700,22 @@ box TaHoma via son API locale (mode développeur, port 8443).
 **Évolutions futures tracées** : builder AppleScript / `on run argv` ;
 Rust limité aux composants candidats (wake word, boîtier embarqué) —
 le cœur reste Python (MLX n'a pas de bindings Rust).
+
+## 2026-09-01 — Contrainte < 200 lignes + reconstruction du Dispatcher
+
+**Décisions** :
+1. Aucun fichier Python > 200 lignes. Les 7 fichiers hors limite sont
+   devenus des packages (finder, apple_calendar, prefilter, tts, stt,
+   bridge, pipeline) avec ré-export paresseux `__getattr__` (PEP 562) :
+   les imports existants n'ont pas bougé.
+2. `router/nlu.py` : classe Dispatcher reconstruite (elle n'avait jamais
+   existé — le pipeline vocal était cassé à l'import depuis ecc6ff6).
+   Combine prefilter + dispatch volets v5 + intents.yaml, avec garde
+   find_spec (déterministe seulement si le module handler existe).
+3. MCPBridge supprimé du pipeline : tool-calling direct via agent.tools.
+
+**Leçons tracées** :
+- Un fichier déplacé d'un niveau doit passer de `parent.parent` à
+  `parents[2]` (bugs CONFIG_PATH/ROOT trouvés dans tts, stt, bridge).
+- La régression par import simple a révélé 2 cassures préexistantes
+  invisibles en production (CONFIG_PATH, Dispatcher).
