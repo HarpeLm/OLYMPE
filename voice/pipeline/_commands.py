@@ -1,5 +1,6 @@
 """Mixin commandes du pipeline vocal (routage + handlers)."""
 from voice.pipeline._config import *
+from router.orchestrator import grounded_web_answer
 
 
 class CommandsMixin:
@@ -49,6 +50,12 @@ class CommandsMixin:
                     action = "deterministic"
                     intent = target
                     print(f"[REPAIR] intent {target} + slots : {repaired}")
+
+        if action == "deterministic" and intent == "web_search":
+            print("[TOOL] web_search (reponse ancree)")
+            response = grounded_web_answer(text)
+            self.memory.log_turn(self.session_id, text, response)
+            return response
 
         if action == "deterministic" and intent in (
                 "delete_file", "empty_trash", "delete_folder", "overwrite_file"):

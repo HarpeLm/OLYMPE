@@ -5,12 +5,16 @@ Décide quoi faire d'une requête après le dispatch :
 
 v2 : mode dry_run pour les tests (n'actionne JAMAIS les volets),
 et gestion propre des noms de volet inconnus (ValueError)."""
+import json
 import sys
+import urllib.request
 from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from router.dispatcher import dispatch
+from router.nlu import Dispatcher
 from integrations.tahoma import (
     list_shutters,
     open_shutter,
@@ -55,16 +59,54 @@ def execute_tahoma_action(intent: str, slots: dict, dry_run: bool = False) -> di
         return {"success": False, "message": str(e)}
 
 
-def orchestrate(text: str, dry_run: bool = False) -> dict:
-    """Point d'entrée : dispatch + exécution ou fallback."""
-    dispatch_result = dispatch(text)
+ROOT = Path(__file__).resolve().parents[1]
+_ROUTER = Dispatcher()
 
-    if dispatch_result and dispatch_result.confidence >= 0.9:
-        result = execute_tahoma_action(dispatch_result.intent,
-                                       dispatch_result.slots,
-                                       dry_run=dry_run)
-        return {"handled": True, "intent": dispatch_result.intent,
-                "result": result, "fallback": False}
+
+def _llm_endpoint():
+    cfg = yaml.safe_load(
+        (ROOT / "config" / "models.yaml").read_text(encoding="utf-8"))
+    srv = cfg.get("server", {})
+    url = f"http://{srv.get('host', '127.0.0.1')}:{srv.get('port', 8000)}"
+    return url + "/v1/chat/completions", cfg["roles"]["chat"]["repo"]
+
+
+def grounded_web_answer(question):
+    """web_search + résumé ancré sur les résultats (jamais de mémoire)."""
+    from agent.tools import run_tool
+    raw = run_tool("web_search", {"query": question})
+    url, model = _llm_endpoint()
+    payload = {"model": model, "max_tokens": 256, "messages": [
+        {"role": "system",
+         "content": "Réponds en une phrase orale en français, uniquement "
+                    "d'après les résultats fournis. Si ils ne permettent "
+                    "pas de répondre, dis-le simplement."},
+        {"role": "user",
+         "content": f"Question : {question}\nRésultats :\n{raw} /no_think"}]}
+    req = urllib.request.Request(
+        url, data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=60) as r:
+        data = json.loads(r.read().decode())
+    return data["choices"][0]["message"].get("content") or "Je n'ai pas trouvé."
+
+
+def orchestrate(text: str, dry_run: bool = False) -> dict:
+    """Point d'entrée : routage nlu + exécution ou fallback."""
+    r = _ROUTER.route(text)
+    intent, action = r["intent"], r["action"]
+
+    if action == "deterministic" and r["confidence"] >= 0.9:
+        if intent == "web_search":
+            return {"handled": True, "intent": intent,
+                    "result": {"success": True,
+                               "message": grounded_web_answer(text)},
+                    "fallback": False}
+        if intent.startswith("shutters."):
+            result = execute_tahoma_action(intent, r["slots"],
+                                           dry_run=dry_run)
+            return {"handled": True, "intent": intent,
+                    "result": result, "fallback": False}
 
     return {"handled": False, "intent": None, "result": None,
             "fallback": True}

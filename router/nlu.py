@@ -9,6 +9,7 @@ Fournit l'objet Dispatcher attendu par le pipeline :
 .route(text) -> dict(intent/action/confidence/slots/handler) et .schemas.
 """
 import importlib.util
+import re
 from pathlib import Path
 
 import yaml
@@ -33,6 +34,12 @@ SHUTTER_HANDLERS = {
 _HANDLER_FIXES = {
     "integrations/calendar.py::": "integrations/apple_calendar.py::",
 }
+# Questions factuelles -> web_search OBLIGATOIRE (anti-hallucination)
+WEB_RE = re.compile(
+    r"cherche(r|z)?\s+(sur|dans|en ligne)|sur (inter|le )net|sur internet|"
+    r"qui a (gagn|remport)\w+|qui (gagne|remporte)|actualit\w+|"
+    r"derni[èe]res? news|tour de france|coupe du monde|jeux olympiques", re.I)
+
 
 
 def _module_exists(handler):
@@ -70,6 +77,12 @@ class Dispatcher:
             d["action"] = "deterministic"
             d["handler"] = SHUTTER_HANDLERS.get(res.intent)
             return d
+
+        # 1b. Fait récent -> web_search obligatoire (jamais de mémoire)
+        if WEB_RE.search(text):
+            return {"intent": "web_search", "action": "deterministic",
+                    "confidence": 0.9, "slots": {"query": text},
+                    "handler": None}
 
         # 2. Préfiltre règles (fichiers, apps...)
         forced, domain = prefilter(text)

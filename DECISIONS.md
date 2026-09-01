@@ -745,3 +745,25 @@ Chaîne validée de bout en bout :
 - TTS Qwen3-TTS-12Hz-1.7B : réponse lue à voix haute
 
 Provisoire : wake word « hey jarvis » en attendant l'entraînement « MJ ».
+
+## 2026-09-02 — Palier 7 : SearXNG local + règle anti-hallucination
+
+**Décision** : SearXNG en conteneur Docker sur 127.0.0.1:8888
+(services/searxng/, versionné), outil web_search branché dessus.
+
+**Exception consciente (P7)** : la recherche web est la seule dépendance
+externe acceptée — les moteurs interrogés par SearXNG sont distants.
+Tout le reste demeure local.
+
+**Anti-hallucination** : le 8B ne doit pas décider lui-même de chercher
+(il répondait de mémoire « Vingegaard a gagné le Tour 2025 »). Une règle
+regex déterministe (WEB_RE, router/nlu.py) force web_search pour les faits
+récents, et la réponse est résumée strictement d'après les résultats
+(grounded_web_answer, router/orchestrator.py).
+
+**Unification voix/écrit** : orchestrate() (mode texte) et le pipeline
+vocal passent désormais par le même routeur nlu.Dispatcher et la même
+fonction ancrée — une seule source de vérité.
+
+**Bug tracé** : openwakeword segfault au Ctrl+C (zsh: segmentation fault).
+Non bloquant — contournement : relancer la boucle.
