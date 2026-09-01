@@ -731,3 +731,17 @@ le cœur reste Python (MLX n'a pas de bindings Rust).
 - Les hotwords STT dans `config/models.yaml` incluent toujours "Olympe" (transition progressive vers "MJ")
 
 **Impact** : Changement cosmétique, aucune fonctionnalité affectée. Le tool-calling et le serveur persistent fonctionnent identiquement.
+
+## 2026-09-02 — Palier 5 atteint : boucle vocale complète
+
+Premier test vocal réel réussi, après réparations (Dispatcher reconstruit,
+chemins parents[2], import argparse).
+
+Chaîne validée de bout en bout :
+- Wake word hey_jarvis (openWakeWord, seuil 0.5, score 0.52)
+- STT Qwen3-ASR-1.7B-4bit (« Quelle heure est-il ? » transcrit correctement)
+- Routage nlu.Dispatcher -> fallback -> LLM vllm-mlx + tool-calling
+- Outil get_current_time via agent.tools (MCPBridge supprimé)
+- TTS Qwen3-TTS-12Hz-1.7B : réponse lue à voix haute
+
+Provisoire : wake word « hey jarvis » en attendant l'entraînement « MJ ».

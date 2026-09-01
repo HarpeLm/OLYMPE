@@ -22,7 +22,7 @@ class VoicePipeline(CommandsMixin):
 
         try:
             self.tools = [{"type": "function", "function": t} for t in list_tools()]
-            print(f"[PIPELINE] {len(self.tools)} outil(s) MCP chargé(s).")
+            print(f"[PIPELINE] {len(self.tools)} outil(s) charges (agent.tools).")
         except Exception as e:
             print(f"[PIPELINE] Outils MCP indisponibles : {e}")
             self.tools = []
