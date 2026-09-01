@@ -7,6 +7,7 @@ _EXPORTS = {
     "repair_calendar_slots": "calendar",
     "calendar_intent_hint": "calendar",
     "RULES": "_rules",
+    "FAMILIES": "core",
 }
 
 def __getattr__(name):
