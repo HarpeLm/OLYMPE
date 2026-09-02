@@ -128,10 +128,10 @@ def extract_and_filter(max_per_intent=30):
             if massive_intent not in INTENT_MAPPING:
                 continue
 
-            olympe_intent = INTENT_MAPPING[massive_intent]
+            target_intent = INTENT_MAPPING[massive_intent]
 
             # Limite par intent
-            if intent_counts.get(olympe_intent, 0) >= max_per_intent:
+            if intent_counts.get(target_intent, 0) >= max_per_intent:
                 continue
 
             utterance = item.get("utt", "").strip()
@@ -142,19 +142,19 @@ def extract_and_filter(max_per_intent=30):
             raw_slots = parse_annot_utt(item.get("annot_utt", ""))
 
             # Normalisation spécifique par intent
-            if olympe_intent == "get_weather":
+            if target_intent == "get_weather":
                 slots = normalize_weather_slots(raw_slots)
-            elif olympe_intent == "set_volume":
+            elif target_intent == "set_volume":
                 slots = normalize_volume_direction(massive_intent)
             else:
                 slots = raw_slots
 
             examples.append({
                 "text": utterance,
-                "intent": olympe_intent,
+                "intent": target_intent,
                 "slots": slots,
             })
-            intent_counts[olympe_intent] = intent_counts.get(olympe_intent, 0) + 1
+            intent_counts[target_intent] = intent_counts.get(target_intent, 0) + 1
 
     return examples, intent_counts
 

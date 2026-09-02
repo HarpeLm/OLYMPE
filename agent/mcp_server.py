@@ -14,7 +14,7 @@ from mcp.server import Server
 from mcp.types import Tool, TextContent
 from agent.tools import list_tools, run_tool
 
-server = Server("olympe")
+server = Server("mj")
 
 
 @server.list_tools()

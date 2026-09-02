@@ -14,7 +14,7 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DB_PATH = ROOT / "data" / "memory" / "olympe.db"
+DB_PATH = ROOT / "data" / "memory" / "mj.db"
 
 
 class Memory:

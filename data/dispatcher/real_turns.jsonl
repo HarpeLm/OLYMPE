@@ -1,0 +1,4 @@
+{"text": "Quelle heure est il?", "intent": "get_current_time", "slots": {}}
+{"text": "Qui a gagné le Tour de France deux mille vingt cinq?", "intent": "web_search", "slots": {}}
+{"text": "Qui a gagné le Tour de France 2025.", "intent": "web_search", "slots": {}}
+{"text": "Quelle heure est-il ?", "intent": "get_current_time", "slots": {}}

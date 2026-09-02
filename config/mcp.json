@@ -1,6 +1,6 @@
 {
   "servers": {
-    "olympe": {
+    "mj": {
       "transport": "stdio",
       "command": "/Users/harpepluie/MJ/.venv/bin/python",
       "args": ["/Users/harpepluie/MJ/agent/mcp_server.py"],
