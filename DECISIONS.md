@@ -767,3 +767,26 @@ fonction ancrée — une seule source de vérité.
 
 **Bug tracé** : openwakeword segfault au Ctrl+C (zsh: segmentation fault).
 Non bloquant — contournement : relancer la boucle.
+
+## 2026-09-02 — Validation finale Palier 7 : batterie de tests web
+
+**Tests effectués en vocal (boucle complète) :**
+
+| Question | Route | Réponse |
+|---|---|---|
+| Qui a gagné le Tour de France 2025 | WEB_RE → web_search | Pogacar |
+| Qui a gagné Roland-Garros 2025 | WEB_RE → web_search | Carlos Alcaraz |
+| Médaille d'or CLM JO Paris 2024 | WEB_RE → web_search | Evenepoel |
+| Médaille d'or (sans précision) | WEB_RE → web_search | « Pas assez d'info » (honnête) |
+| Buts Ronaldo en carrière | Fallback → web_search auto | 970+ buts |
+| Président français actuel | Fallback → web_search auto | Emmanuel Macron |
+| Population mondiale | Fallback (connaissance) | 8 milliards (OK) |
+
+**Conclusion** : la double protection fonctionne.
+- WEB_RE intercepte systématiquement les faits récents → ancrage garanti
+- Fallback LLM juge correctement quand chercher (Ronaldo, Macron) vs répondre de mémoire
+- Le résumé ancré sait dire « je ne sais pas » quand les résultats sont insuffisants
+
+**Anti-hallucination validé** : avant le patch, le 8B répondait Vingegaard
+pour le Tour 2025. Après le patch, toutes les réponses factuelles récentes
+sont ancrées sur SearXNG.
